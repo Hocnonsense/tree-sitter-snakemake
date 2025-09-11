@@ -16,7 +16,7 @@
     }
   ],
   "metadata": {
-    "version": "2.0.0",
+    "version": "2.1.0",
     "license": "MIT",
     "description": "snakemake grammar for tree-sitter, based on tree-sitter-python",
     "authors": [

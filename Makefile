@@ -4,7 +4,7 @@ endif
 
 LANGUAGE_NAME := tree-sitter-snakemake
 HOMEPAGE_URL := https://github.com/tree-sitter/tree-sitter-snakemake
-VERSION := 2.0.0
+VERSION := 2.1.0
 
 # repository
 SRC_DIR := src
