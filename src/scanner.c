@@ -94,7 +94,7 @@ typedef struct {
     Array(uint16_t) indents;
     Array(Delimiter) delimiters;
     AllowWildcard allow_wc;
-    bool inside_f_string;
+    bool inside_interpolated_string;
 } Scanner;
 
 
@@ -275,7 +275,7 @@ bool tree_sitter_snakemake_external_scanner_scan(void *payload, TSLexer *lexer, 
                                 lexer->mark_end(lexer);
                                 array_pop(&scanner->delimiters);
                                 lexer->result_symbol = STRING_END;
-                                scanner->inside_f_string = false;
+                                scanner->inside_interpolated_string = false;
                             }
                             return true;
                         }
@@ -293,7 +293,7 @@ bool tree_sitter_snakemake_external_scanner_scan(void *payload, TSLexer *lexer, 
                     advance(lexer);
                     array_pop(&scanner->delimiters);
                     lexer->result_symbol = STRING_END;
-                    scanner->inside_f_string = false;
+                    scanner->inside_interpolated_string = false;
                 }
                 lexer->mark_end(lexer);
                 return true;
@@ -309,7 +309,7 @@ bool tree_sitter_snakemake_external_scanner_scan(void *payload, TSLexer *lexer, 
     lexer->mark_end(lexer);
 
     bool found_end_of_line = false;
-    uint32_t indent_length = 0;
+    uint16_t indent_length = 0;
     int32_t first_comment_indent_length = -1;
     for (;;) {
         if (lexer->lookahead == '\n') {
@@ -378,7 +378,7 @@ bool tree_sitter_snakemake_external_scanner_scan(void *payload, TSLexer *lexer, 
             if ((valid_symbols[DEDENT] ||
                  (!valid_symbols[NEWLINE] && !(valid_symbols[STRING_START] && next_tok_is_string_start) &&
                   !within_brackets)) &&
-                indent_length < current_indent_length && !scanner->inside_f_string &&
+                indent_length < current_indent_length && !scanner->inside_interpolated_string &&
 
                 // Wait to create a dedent token until we've consumed any
                 // comments
@@ -401,7 +401,8 @@ bool tree_sitter_snakemake_external_scanner_scan(void *payload, TSLexer *lexer, 
 
         bool has_flags = false;
         while (lexer->lookahead) {
-            if (lexer->lookahead == 'f' || lexer->lookahead == 'F') {
+            if (lexer->lookahead == 'f' || lexer->lookahead == 'F' || lexer->lookahead == 't' ||
+                lexer->lookahead == 'T') {
                 set_format(&delimiter);
             } else if (lexer->lookahead == 'r' || lexer->lookahead == 'R') {
                 set_raw(&delimiter);
@@ -447,7 +448,7 @@ bool tree_sitter_snakemake_external_scanner_scan(void *payload, TSLexer *lexer, 
         if (end_character(&delimiter)) {
             array_push(&scanner->delimiters, delimiter);
             lexer->result_symbol = STRING_START;
-            scanner->inside_f_string = is_format(&delimiter);
+            scanner->inside_interpolated_string = is_format(&delimiter);
             return true;
         }
         if (has_flags) {
@@ -464,7 +465,7 @@ unsigned tree_sitter_snakemake_external_scanner_serialize(void *payload, char *b
     size_t size = 0;
 
     buffer[size++] = (char)scanner->allow_wc;
-    buffer[size++] = (char)scanner->inside_f_string;
+    buffer[size++] = (char)scanner->inside_interpolated_string;
 
     size_t delimiter_count = scanner->delimiters.size;
     if (delimiter_count > UINT8_MAX) {
@@ -479,7 +480,9 @@ unsigned tree_sitter_snakemake_external_scanner_serialize(void *payload, char *b
 
     uint32_t iter = 1;
     for (; iter < scanner->indents.size && size < TREE_SITTER_SERIALIZATION_BUFFER_SIZE; ++iter) {
-        buffer[size++] = (char)*array_get(&scanner->indents, iter);
+        uint16_t indent_value = *array_get(&scanner->indents, iter);
+        buffer[size++] = (char)(indent_value & 0xFF);
+        buffer[size++] = (char)((indent_value >> 8) & 0xFF);
     }
 
     return size;
@@ -496,7 +499,7 @@ void tree_sitter_snakemake_external_scanner_deserialize(void *payload, const cha
         size_t size = 0;
 
         scanner->allow_wc = (AllowWildcard)buffer[size++];
-        scanner->inside_f_string = (bool)buffer[size++];
+        scanner->inside_interpolated_string = (bool)buffer[size++];
 
         size_t delimiter_count = (uint8_t)buffer[size++];
         if (delimiter_count > 0) {
@@ -506,8 +509,9 @@ void tree_sitter_snakemake_external_scanner_deserialize(void *payload, const cha
             size += delimiter_count;
         }
 
-        for (; size < length; size++) {
-            array_push(&scanner->indents, (unsigned char)buffer[size]);
+        for (; size + 1 < length; size += 2) {
+            uint16_t indent_value = (unsigned char)buffer[size] | ((unsigned char)buffer[size + 1] << 8);
+            array_push(&scanner->indents, indent_value);
         }
     }
 }

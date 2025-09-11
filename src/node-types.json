@@ -1815,7 +1815,7 @@
         ]
       },
       "value": {
-        "multiple": false,
+        "multiple": true,
         "required": false,
         "types": [
           {
@@ -1831,25 +1831,6 @@
       "types": [
         {
           "type": "block",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "except_group_clause",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "block",
-          "named": true
-        },
-        {
-          "type": "expression",
           "named": true
         }
       ]
@@ -3446,7 +3427,7 @@
     },
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "else_clause",
@@ -3454,10 +3435,6 @@
         },
         {
           "type": "except_clause",
-          "named": true
-        },
-        {
-          "type": "except_group_clause",
           "named": true
         },
         {
@@ -4157,7 +4134,8 @@
   },
   {
     "type": "comment",
-    "named": true
+    "named": true,
+    "extra": true
   },
   {
     "type": "conda",
@@ -4229,10 +4207,6 @@
   },
   {
     "type": "except",
-    "named": false
-  },
-  {
-    "type": "except*",
     "named": false
   },
   {
@@ -4313,7 +4287,8 @@
   },
   {
     "type": "line_continuation",
-    "named": true
+    "named": true,
+    "extra": true
   },
   {
     "type": "localrule",
