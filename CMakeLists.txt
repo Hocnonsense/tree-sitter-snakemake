@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.13)
 
 project(tree-sitter-snakemake
-        VERSION "2.0.0"
+        VERSION "2.1.0"
         DESCRIPTION "snakemake grammar for tree-sitter, based on tree-sitter-python"
         HOMEPAGE_URL "https://github.com/tree-sitter/tree-sitter-snakemake"
         LANGUAGES C)
