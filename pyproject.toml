@@ -82,7 +82,7 @@ default-environment = "dev"
 depends-on = ["sync-scanner"]
 
 [tool.pixi.tasks.clean-test]
-depends-on = ["clean", "codegen", "test"]
+depends-on = ["clean", "npm-install", "codegen", "test"]
 
 [tool.isort]
 profile = "black"
