@@ -23,7 +23,11 @@ indent_size = 4
 indent_style = space
 indent_size = 4
 
-[*.{py,pyi}]
+[*.{py,pyi,smk}]
+indent_style = space
+indent_size = 4
+
+[{s,S}nakefile]
 indent_style = space
 indent_size = 4
 

@@ -48,3 +48,13 @@ zig-out/
 *.tar.gz
 *.tgz
 *.zip
+
+# generated files
+src/*
+!src/scanner.c
+bindings/*
+binding.gyp
+
+# pixi environments
+.pixi/*
+!.pixi/config.toml

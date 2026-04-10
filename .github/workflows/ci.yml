@@ -12,15 +12,17 @@ on:
 
 jobs:
   ci:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Node
-      uses: actions/setup-node@v3
-      with:
-        node-version: 16
-        cache: 'npm'
-    - run: npm ci
-    - run: npm test
+      - uses: actions/checkout@v4
+
+      - uses: prefix-dev/setup-pixi@v0.8.5
+        with:
+          environments: dev codegen
+      - name: Generate parser
+        run: pixi run codegen
+      - name: Test grammar
+        run: pixi run test
+      - name: Test Python binding
+        run: pixi run --environment dev pytest bindings/python/tests/
