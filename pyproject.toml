@@ -13,17 +13,63 @@ classifiers = [
   "Topic :: Text Processing :: Linguistic",
   "Typing :: Typed",
 ]
-authors = [{ name = "Oliver Thomas" }]
-requires-python = ">=3.10"
+authors = [{ name = "Oliver Thomas" }, { name = "Aoran Hu" }]
+requires-python = ">=3.11"
 license.text = "MIT"
 readme = "README.md"
 
 [project.urls]
-Homepage = "https://github.com/osthomas/tree-sitter-snakemake"
-
-[project.optional-dependencies]
-core = ["tree-sitter~=0.24"]
+Homepage = "https://github.com/snakemake/tree-sitter-snakemake"
+Repository = "https://github.com/Hocnonsense/tree-sitter-snakemake"
 
 [tool.cibuildwheel]
-build = "cp310-*"
+build = "cp3{11,12,13}-*"
 build-frontend = "build"
+
+[tool.pixi.workspace]
+channels = ["conda-forge"]
+platforms = ["linux-64"]
+
+[tool.pixi.dependencies]
+
+[tool.pixi.environments]
+default = { solve-group = "default" }
+dev = { features = ["dev", "codegen"], solve-group = "default" }
+codegen = { features = ["codegen"], solve-group = "default" }
+
+[tool.pixi.feature.codegen.dependencies]
+nodejs = ">=20"
+tree-sitter-cli = "*"
+
+[tool.pixi.feature.codegen.tasks.clean]
+cmd = "git clean -fdx --exclude=node_modules --exclude='.*' --exclude=pixi.lock && rm -rf build dist"
+default-environment = "codegen"
+
+[tool.pixi.feature.codegen.tasks.codegen]
+cmd = "npm ci && tree-sitter generate && tree-sitter init"
+default-environment = "codegen"
+
+[tool.pixi.feature.dev.dependencies]
+python = "3.13.*"
+nodejs = ">=20"       # npm ci 需要
+tree-sitter-cli = "*" # tree-sitter generate / test 需要
+
+[tool.pixi.feature.dev.pypi-dependencies]
+tree-sitter-snakemake = { path = ".", editable = true }
+tree-sitter = "~=0.24"
+setuptools = "*"
+wheel = "*"
+pytest = "*"
+pytest-cov = "*"
+flake8 = "*"
+isort = "*"
+
+[tool.pixi.feature.dev.tasks.test]
+cmd = "tree-sitter test"
+default-environment = "dev"
+
+[tool.pixi.tasks.clean-test]
+depends-on = ["clean", "codegen", "test"]
+
+[tool.isort]
+profile = "black"

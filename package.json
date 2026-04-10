@@ -2,7 +2,7 @@
   "name": "tree-sitter-snakemake",
   "version": "2.1.0",
   "description": "snakemake grammar for tree-sitter, based on tree-sitter-python",
-  "repository": "https://github.com/osthomas/tree-sitter-python",
+  "repository": "https://github.com/osthomas/tree-sitter-snakemake",
   "license": "MIT",
   "author": "Oliver Thomas",
   "keywords": [

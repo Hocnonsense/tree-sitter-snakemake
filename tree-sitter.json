@@ -12,7 +12,9 @@
       ],
       "injection-regex": "^snakemake$",
       "class-name": "TreeSitterSnakemake",
-      "highlights": "queries/snakemake/highlights.scm"
+      "highlights": "queries/snakemake/highlights.scm",
+      "injections": "queries/snakemake/injections.scm",
+      "locals": "queries/snakemake/locals.scm"
     }
   ],
   "metadata": {
@@ -25,7 +27,7 @@
       }
     ],
     "links": {
-      "repository": "https://github.com/osthomas/tree-sitter-snakemake"
+      "repository": "https://github.com/Hocnonsense/tree-sitter-snakemake"
     }
   },
   "bindings": {

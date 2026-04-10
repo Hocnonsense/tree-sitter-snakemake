@@ -21,10 +21,10 @@ binding.gyp linguist-generated
 package.json linguist-generated
 package-lock.json linguist-generated
 
-# Python bindings
-bindings/python/** linguist-generated
-setup.py linguist-generated
-pyproject.toml linguist-generated
+# Python bindings modified after linguist-generated
+# bindings/python/**
+# setup.py
+# pyproject.toml
 
 # Go bindings
 bindings/go/* linguist-generated
@@ -40,3 +40,7 @@ Package.resolved linguist-generated
 bindings/zig/* linguist-generated
 build.zig linguist-generated
 build.zig.zon linguist-generated
+
+# SCM syntax highlighting & preventing 3-way merges
+pixi.lock merge=binary linguist-language=YAML linguist-generated=true -diff
+package-lock.json linguist-generated=true
