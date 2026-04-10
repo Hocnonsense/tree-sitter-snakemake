@@ -52,6 +52,7 @@ zig-out/
 # generated files
 src/*
 !src/scanner.c
+!src/scanner.c.diff
 bindings/*
 binding.gyp
 

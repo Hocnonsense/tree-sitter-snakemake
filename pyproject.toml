@@ -41,12 +41,24 @@ codegen = { features = ["codegen"], solve-group = "default" }
 nodejs = ">=20"
 tree-sitter-cli = "*"
 
+[tool.pixi.feature.codegen.tasks.npm-install]
+cmd = "npm ci"
+default-environment = "codegen"
+
+[tool.pixi.feature.codegen.tasks.sync-scanner]
+cmd = "bash scripts/sync-scanner.sh"
+default-environment = "codegen"
+
+[tool.pixi.tasks.assert-sync-scanner]
+cmd = "bash scripts/assert-sync-scanner.sh"
+
 [tool.pixi.feature.codegen.tasks.clean]
 cmd = "git clean -fdx --exclude=node_modules --exclude='.*' --exclude=pixi.lock && rm -rf build dist"
 default-environment = "codegen"
 
 [tool.pixi.feature.codegen.tasks.codegen]
-cmd = "npm ci && tree-sitter generate && tree-sitter init"
+cmd = "tree-sitter generate && tree-sitter init"
+depends-on = ["sync-scanner"]
 default-environment = "codegen"
 
 [tool.pixi.feature.dev.dependencies]
@@ -67,9 +79,10 @@ isort = "*"
 [tool.pixi.feature.dev.tasks.test]
 cmd = "tree-sitter test"
 default-environment = "dev"
+depends-on = ["sync-scanner"]
 
 [tool.pixi.tasks.clean-test]
-depends-on = ["clean", "codegen", "test"]
+depends-on = ["clean", "npm-install", "codegen", "test"]
 
 [tool.isort]
 profile = "black"
