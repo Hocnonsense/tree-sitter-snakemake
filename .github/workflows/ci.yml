@@ -22,6 +22,8 @@ jobs:
           environments: dev codegen
       - name: Generate parser
         run: pixi run codegen
+      - name: Check grammar.c is up to date
+        run: pixi run assert-sync-scanner
       - name: Test grammar
         run: pixi run test
       - name: Test Python binding

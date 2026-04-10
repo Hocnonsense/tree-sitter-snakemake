@@ -44,3 +44,5 @@ build.zig.zon linguist-generated
 # SCM syntax highlighting & preventing 3-way merges
 pixi.lock merge=binary linguist-language=YAML linguist-generated=true -diff
 package-lock.json linguist-generated=true
+
+src/scanner.c.diff diff linguist-language=Diff
