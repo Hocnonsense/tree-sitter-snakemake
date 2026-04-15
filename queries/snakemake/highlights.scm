@@ -44,36 +44,9 @@ body: (_
   "rule" @keyword
   "with" @keyword)
 
-; Wildcard names
-(wildcard
-  (identifier) @variable)
-
-(wildcard
-  (flag) @variable.parameter.builtin)
-
 ; builtin variables
 ((identifier) @variable.builtin
   (#any-of? @variable.builtin "checkpoints" "config" "gather" "rules" "scatter" "workflow"))
-
-; References to directive labels in wildcard interpolations
-; the #any-of? queries are moved above the #has-ancestor? queries to
-; short-circuit the potentially expensive tree traversal, if possible
-; see:
-; https://github.com/nvim-treesitter/nvim-treesitter/pull/4302#issuecomment-1685789790
-; directive labels in wildcard context
-((wildcard
-  (identifier) @label)
-  (#any-of? @label "input" "jobid" "log" "output" "params" "resources" "rule" "threads" "wildcards"))
-
-((wildcard
-  (attribute
-    object: (identifier) @label))
-  (#any-of? @label "input" "jobid" "log" "output" "params" "resources" "rule" "threads" "wildcards"))
-
-((wildcard
-  (subscript
-    value: (identifier) @label))
-  (#any-of? @label "input" "jobid" "log" "output" "params" "resources" "rule" "threads" "wildcards"))
 
 ; directive labels in block context (eg. within 'run:')
 ((identifier) @label

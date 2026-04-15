@@ -6,13 +6,7 @@ module.exports = grammar(PYTHON, {
     name: "snakemake",
 
     externals: ($, original) => original.concat([
-        // Define flags to distinguish regular strings from wildcard strings
-        $._ALLOW_WC_DEF,
-        $._ALLOW_WC_INTERP,
-        $._DISALLOW_WC,
-        $._WILDCARD_DEF_OPEN,
-        $._WILDCARD_INTERP_OPEN,
-        $._IN_DIRECTIVE_PARAMETERS // this is a sentinel token and is never emitted
+        $._IN_DIRECTIVE_PARAMETERS // sentinel: tells scanner we are inside directive parameters
     ]),
 
     inline: ($, original) => original.concat([
@@ -177,7 +171,7 @@ module.exports = grammar(PYTHON, {
             $._rule_directive_block
         ), $.directive),
 
-        // Rule directives with wildcard definitions
+        // Rule directives with wildcard definitions (injected by snakemake_wildcard sub-grammar)
         _rule_directive_wc_def: $ => new_directive(
             choice(
                 "benchmark",
@@ -187,10 +181,10 @@ module.exports = grammar(PYTHON, {
                 "output"
             ),
             "arguments",
-            $._directive_parameters_wc_def
+            $._directive_parameters_wc_none
         ),
 
-        // Rule directives with wildcard interpolations
+        // Rule directives with wildcard interpolations (injected by snakemake_wildcard sub-grammar)
         _rule_directive_wc_interp: $ => new_directive(
             choice(
                 "message",
@@ -199,7 +193,7 @@ module.exports = grammar(PYTHON, {
                 "shell"
             ),
             "arguments",
-            $._directive_parameters_wc_interp
+            $._directive_parameters_wc_none
         ),
 
         // Rule directives without wildcards
@@ -311,20 +305,6 @@ module.exports = grammar(PYTHON, {
             $._directive_parameters2
         ),
 
-        // Parameters for directives which allow *definition* of wildcards
-        _directive_parameters_wc_def: $ => seq(
-            $._ALLOW_WC_DEF,
-            $._directive_parameters_wc_none,
-            $._DISALLOW_WC
-        ),
-
-        // Parameters for directives which allow *interpolation* of wildcards
-        _directive_parameters_wc_interp: $ => seq(
-            $._ALLOW_WC_INTERP,
-            $._directive_parameters_wc_none,
-            $._DISALLOW_WC
-        ),
-
         // Identifier list (for localrules)
         _directive_parameters_identifiers1: $ => directiveParametersBlockOnly($, $.identifier),
         _directive_parameters_identifiers2: $ => directiveParametersLineAndBlock($, $.identifier),
@@ -351,58 +331,6 @@ module.exports = grammar(PYTHON, {
             $.dictionary_splat
         ),
 
-        // STRINGS
-        string: $ => seq(
-            $.string_start,
-            repeat(choice($.interpolation, $.wildcard, $.string_content)),
-            $.string_end
-        ),
-
-        // The WILDCARD_DEF_OPEN and WILDCARD_INTERP_OPEN tokens are emitted by
-        // the external scanner upon encountering an opening bracket for
-        // definition/interpolation wildcard string, respectively, depending on
-        // whether wildcards are allowed in the current context
-        // (ALLOW_WC/DISALLOW_WC) to disambiguate wildcards from f string
-        // interpolations.
-        _wildcard_definition: $ => seq(
-            $._WILDCARD_DEF_OPEN,
-            "{",
-            $.identifier,
-            optional(seq(
-                ",",
-                $.constraint
-            )),
-            "}"
-        ),
-
-
-        // Flags to treat wildcard interpolations specially
-        flag: $ => choice(
-            "q"  // quote elements that contain whitespace
-        ),
-
-
-        _wildcard_interpolation: $ => seq(
-            $._WILDCARD_INTERP_OPEN,
-            "{",
-            choice(
-                $.identifier,
-                $.attribute,
-                $.subscript
-            ),
-            optional(seq(
-                ":",
-                $.flag
-            )),
-            "}"
-        ),
-
-        wildcard: $ => choice(
-            $._wildcard_definition,
-            $._wildcard_interpolation
-        ),
-
-        constraint: $ => /([^{}]|(\{\d+\}))+/,
     }
 });
 

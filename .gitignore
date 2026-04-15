@@ -56,6 +56,20 @@ src/*
 bindings/*
 binding.gyp
 
+# wildcard sub-grammar source files (hand-written, must be tracked)
+wildcard/src/*
+!wildcard/grammar.js
+!wildcard/queries/
+!wildcard/queries/highlights.scm
+!wildcard/test/
+!wildcard/test/corpus/
+!wildcard/test/corpus/wildcards.txt
+
+# highlight injection test (uses tree-sitter highlight --html, not tree-sitter test)
+!scripts/test_highlight_theme.json
+!scripts/test_highlight_injection.smk
+!scripts/test_highlight_injection.py
+
 # pixi environments
 .pixi/*
 !.pixi/config.toml

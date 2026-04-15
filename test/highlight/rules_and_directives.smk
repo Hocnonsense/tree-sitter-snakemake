@@ -6,9 +6,7 @@ rule ruleA:
     input: a = "b",
         b = "c",
         c = "{sample}.txt",
-        #     ^^^^^^ variable
     output: "{sample}.tsv",
-#             ^^^^^^ variable
 # comment
         # comment
         d = "d"
@@ -16,9 +14,7 @@ rule ruleA:
 #   ^^^^^ label
         "cat {input:q} > {output.d:q}"
 #             ^^^^^ label
-#                         ^^^^^^ label
-#                   ^ variable.parameter.builtin
-#                                  ^ variable.parameter.builtin
+#                         ^^^^^^^^ label
         f"{input:d}"
 #          ^^^^^ !label
         "{input}"

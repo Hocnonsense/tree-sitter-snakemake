@@ -53,11 +53,11 @@ default-environment = "codegen"
 cmd = "bash scripts/assert-sync-scanner.sh"
 
 [tool.pixi.feature.codegen.tasks.clean]
-cmd = "git clean -fdx --exclude=node_modules --exclude='.*' --exclude=pixi.lock && rm -rf build dist"
+cmd = "git clean -fdx --exclude=node_modules --exclude='.*' --exclude='*.md' --exclude=pixi.lock --exclude=wildcard && rm -rf build dist"
 default-environment = "codegen"
 
 [tool.pixi.feature.codegen.tasks.codegen]
-cmd = "tree-sitter generate && tree-sitter init"
+cmd = "tree-sitter generate && tree-sitter init && (cd wildcard && tree-sitter generate)"
 depends-on = ["sync-scanner"]
 default-environment = "codegen"
 
@@ -76,13 +76,24 @@ pytest-cov = "*"
 flake8 = "*"
 isort = "*"
 
-[tool.pixi.feature.dev.tasks.test]
+[tool.pixi.feature.dev.tasks.test-snakemake]
 cmd = "tree-sitter test"
 default-environment = "dev"
 depends-on = ["sync-scanner"]
 
-[tool.pixi.tasks.clean-test]
-depends-on = ["clean", "npm-install", "codegen", "test"]
+[tool.pixi.feature.dev.tasks.test-wildcard]
+cmd = "(cd wildcard && tree-sitter test)"
+default-environment = "dev"
+
+[tool.pixi.feature.dev.tasks.test-html]
+cmd = "python scripts/test_highlight_injection.py"
+default-environment = "dev"
+
+[tool.pixi.feature.dev.tasks.tests]
+depends-on = ["test-snakemake", "test-wildcard", "test-html"]
+
+[tool.pixi.tasks.clean-tests]
+depends-on = ["clean", "npm-install", "codegen", "tests"]
 
 [tool.isort]
 profile = "black"

@@ -15,6 +15,14 @@
       "highlights": "queries/snakemake/highlights.scm",
       "injections": "queries/snakemake/injections.scm",
       "locals": "queries/snakemake/locals.scm"
+    },
+    {
+      "name": "snakemake_wildcard",
+      "camelcase": "SnakemakeWildcard",
+      "scope": "source.snakemake_wildcard",
+      "injection-regex": "^snakemake_wildcard$",
+      "path": "wildcard",
+      "highlights": "wildcard/queries/highlights.scm"
     }
   ],
   "metadata": {
