@@ -13,12 +13,8 @@ rule ruleA:
     shell:
 #   ^^^^^ label
         "cat {input:q} > {output.d:q}"
-#             ^^^^^ label
-#                         ^^^^^^^^ label
         f"{input:d}"
-#          ^^^^^ !label
         "{input}"
-#         ^^^^^ label
     run:
         threads + 5
 #       ^^^^^^^ label

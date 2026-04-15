@@ -34,32 +34,32 @@ platforms = ["linux-64"]
 
 [tool.pixi.environments]
 default = { solve-group = "default" }
-dev = { features = ["dev", "codegen"], solve-group = "default" }
-codegen = { features = ["codegen"], solve-group = "default" }
+dev = { features = ["dev", "build"], solve-group = "default" }
+build = { features = ["build"], solve-group = "default" }
 
-[tool.pixi.feature.codegen.dependencies]
+[tool.pixi.feature.build.dependencies]
 nodejs = ">=20"
 tree-sitter-cli = "*"
 
-[tool.pixi.feature.codegen.tasks.npm-install]
+[tool.pixi.feature.build.tasks.npm-install]
 cmd = "npm ci"
-default-environment = "codegen"
+default-environment = "build"
 
-[tool.pixi.feature.codegen.tasks.sync-scanner]
-cmd = "bash scripts/sync-scanner.sh"
-default-environment = "codegen"
+[tool.pixi.feature.build.tasks.sync-scanner]
+cmd = "bash tests/sync-scanner.sh"
+default-environment = "build"
 
 [tool.pixi.tasks.assert-sync-scanner]
-cmd = "bash scripts/assert-sync-scanner.sh"
+cmd = "bash tests/assert-sync-scanner.sh"
 
-[tool.pixi.feature.codegen.tasks.clean]
+[tool.pixi.feature.build.tasks.clean]
 cmd = "git clean -fdx --exclude=node_modules --exclude='.*' --exclude='*.md' --exclude=pixi.lock && rm -rf build dist"
-default-environment = "codegen"
+default-environment = "build"
 
-[tool.pixi.feature.codegen.tasks.codegen]
+[tool.pixi.feature.build.tasks.build]
 cmd = "tree-sitter generate && tree-sitter init && (cd snakemake_iostr && tree-sitter generate)"
 depends-on = ["sync-scanner"]
-default-environment = "codegen"
+default-environment = "build"
 
 [tool.pixi.feature.dev.dependencies]
 python = "3.13.*"
@@ -74,10 +74,11 @@ wheel = "*"
 pytest = "*"
 pytest-cov = "*"
 flake8 = "*"
+black = "*"
 isort = "*"
 
 [tool.pixi.feature.dev.tasks.test-snakemake]
-cmd = "tree-sitter test"
+cmd = "tree-sitter test && pytest bindings"
 default-environment = "dev"
 depends-on = ["sync-scanner"]
 
@@ -86,14 +87,14 @@ cmd = "(cd snakemake_iostr && tree-sitter test)"
 default-environment = "dev"
 
 [tool.pixi.feature.dev.tasks.test-html]
-cmd = "python scripts/test_highlight_injection.py"
+cmd = "pytest tests/test_highlight_injection.py"
 default-environment = "dev"
 
 [tool.pixi.feature.dev.tasks.tests]
 depends-on = ["test-snakemake", "test-snakemake_iostr", "test-html"]
 
 [tool.pixi.tasks.clean-tests]
-depends-on = ["clean", "npm-install", "codegen", "tests"]
+depends-on = ["clean", "npm-install", "build", "tests"]
 
 [tool.isort]
 profile = "black"

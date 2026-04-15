@@ -11,30 +11,22 @@ unique colors to each capture type.  This code path is identical to what
 editors (Neovim, Helix) use, unlike `tree-sitter test` which has a known
 CLI bug with @variable captures from injected grammars.
 
-Run:  python scripts/test_highlight_injection.py
+Run:  pytest tests/test_highlight_injection.py
 """
 
 import re
 import subprocess
 import sys
 from pathlib import Path
+import json
 
 REPO = Path(__file__).resolve().parent.parent
-THEME = REPO / "scripts/test_highlight_theme.json"
-TEST_FILE = REPO / "scripts/test_highlight_injection.smk"
-
-COLOR_TO_CAPTURE = {
-    "#aa0000": "variable",
-    "#bb0000": "variable.builtin",
-    "#cc0000": "variable.parameter.builtin",
-    "#00aa00": "label",
-    "#0000aa": "string.escape",
-    "#aa00aa": "keyword",
-    "#00aaaa": "type",
-}
+THEME = REPO / "tests/test_highlight_theme.json"
+with THEME.open() as f:
+    COLOR_TO_CAPTURE = {k["color"]: v for v, k in json.load(f)["theme"].items()}
 
 
-def get_highlights(smk_file: Path, theme_file: Path) -> list[tuple[str, str]]:
+def get_highlights(smk_file: Path, theme_file: Path):
     """Return list of (text, capture_name) for every highlighted span."""
     result = subprocess.run(
         [
@@ -52,7 +44,7 @@ def get_highlights(smk_file: Path, theme_file: Path) -> list[tuple[str, str]]:
         print("tree-sitter highlight failed:", result.stderr, file=sys.stderr)
         sys.exit(1)
 
-    highlights = []
+    highlights: list[tuple[str, str]] = []
     for m in re.finditer(r"<span style='([^']+)'>([^<]+)</span>", result.stdout):
         style, raw = m.group(1), m.group(2)
         text = (
@@ -67,20 +59,19 @@ def get_highlights(smk_file: Path, theme_file: Path) -> list[tuple[str, str]]:
     return highlights
 
 
-def run_tests(highlights: list[tuple[str, str]]) -> bool:
-    failures = []
+def test_wildcards():
+    test_file = REPO / "tests/test_highlight_injection.smk"
+    highlights = get_highlights(test_file, THEME)
 
     def expect(text: str, capture: str) -> None:
-        actual = {c for t, c in highlights if t == text}
-        if capture not in actual:
-            failures.append(
-                f"  FAIL  '{text}' -> @{capture}  (got: {actual or 'unhighlighted'})"
-            )
+        actual = {c for t, c in highlights if t == text} or {"unhighlighted"}
+        assert capture in actual, f"'{text}' should be @{capture} (got: {actual})"
 
     def expect_not(text: str, capture: str) -> None:
-        actual = {c for t, c in highlights if t == text}
-        if capture in actual:
-            failures.append(f"  FAIL  '{text}' should NOT be @{capture}")
+        actual = {c for t, c in highlights if t == text} or {"unhighlighted"}
+        assert (
+            capture not in actual
+        ), f"'{text}' should NOT be @{capture} (got: {actual})"
 
     # --- wildcard definitions (input/output directives) ---
     # {sample} in plain strings → @variable (user-defined wildcard name)
@@ -112,21 +103,8 @@ def run_tests(highlights: list[tuple[str, str]]) -> bool:
     # since f-string {input:q} parses "q" as a format_spec, not a wildcard flag.
     # We check that "q" only appears once (from the plain-string {input:q}).
     q_captures = [(t, c) for t, c in highlights if t == "q"]
-    if len(q_captures) != 1:
-        failures.append(
-            f"  FAIL  'q' should appear exactly once as @variable.parameter.builtin"
-            f" (got {q_captures})"
-        )
-
-    if failures:
-        print("highlight injection tests FAILED:")
-        print("\n".join(failures))
-        return False
-
+    assert len(q_captures) == 1, (
+        f"  FAIL  'q' should appear exactly once as @variable.parameter.builtin"
+        f" (got {q_captures})"
+    )
     print(f"highlight injection tests passed  ({len(highlights)} highlighted spans)")
-    return True
-
-
-if __name__ == "__main__":
-    highlights = get_highlights(TEST_FILE, THEME)
-    sys.exit(0 if run_tests(highlights) else 1)
