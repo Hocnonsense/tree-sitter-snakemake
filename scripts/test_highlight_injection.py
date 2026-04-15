@@ -2,7 +2,7 @@
 """
 Highlight injection snapshot test.
 
-Verifies that the snakemake_wildcard grammar is correctly injected into
+Verifies that the snakemake_iostr grammar is correctly injected into
 string_content nodes by the snakemake grammar, producing the expected
 highlight captures.
 
@@ -37,9 +37,16 @@ COLOR_TO_CAPTURE = {
 def get_highlights(smk_file: Path, theme_file: Path) -> list[tuple[str, str]]:
     """Return list of (text, capture_name) for every highlighted span."""
     result = subprocess.run(
-        ["tree-sitter", "highlight", "--html",
-         "--config-path", str(theme_file), str(smk_file)],
-        capture_output=True, text=True,
+        [
+            "tree-sitter",
+            "highlight",
+            "--html",
+            "--config-path",
+            str(theme_file),
+            str(smk_file),
+        ],
+        capture_output=True,
+        text=True,
     )
     if result.returncode != 0:
         print("tree-sitter highlight failed:", result.stderr, file=sys.stderr)
@@ -48,8 +55,12 @@ def get_highlights(smk_file: Path, theme_file: Path) -> list[tuple[str, str]]:
     highlights = []
     for m in re.finditer(r"<span style='([^']+)'>([^<]+)</span>", result.stdout):
         style, raw = m.group(1), m.group(2)
-        text = (raw.replace("&quot;", '"').replace("&amp;", "&")
-                   .replace("&gt;", ">").replace("&lt;", "<"))
+        text = (
+            raw.replace("&quot;", '"')
+            .replace("&amp;", "&")
+            .replace("&gt;", ">")
+            .replace("&lt;", "<")
+        )
         color = re.search(r"#[0-9a-f]{6}", style)
         if color and (capture := COLOR_TO_CAPTURE.get(color.group())):
             highlights.append((text, capture))
@@ -77,14 +88,14 @@ def run_tests(highlights: list[tuple[str, str]]) -> bool:
 
     # --- wildcard interpolations (shell directive) ---
     # {input:q} → name=input (@label), flag=q (@variable.parameter.builtin)
-    expect("input",  "label")
-    expect("q",      "variable.parameter.builtin")
+    expect("input", "label")
+    expect("q", "variable.parameter.builtin")
 
     # {output} → @label (directive reference)
     expect("output", "label")
 
     # {input.a}, {output.b} → whole dotted name is @label
-    expect("input.a",  "label")
+    expect("input.a", "label")
     expect("output.b", "label")
 
     # --- escaped braces ---
@@ -93,7 +104,7 @@ def run_tests(highlights: list[tuple[str, str]]) -> bool:
     expect("}}", "string.escape")
 
     # --- f-strings are NOT injected ---
-    # f"{input:q}" uses Python interpolation, not snakemake_wildcard;
+    # f"{input:q}" uses Python interpolation, not snakemake_iostr;
     # "input" inside is an identifier, not a wildcard name → no @label from injection
     # (the directive keyword "input:" above produces a separate @label entry,
     #  but f-string content should not add another one beyond what the main grammar sees)

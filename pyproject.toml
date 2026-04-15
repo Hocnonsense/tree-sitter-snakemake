@@ -53,11 +53,11 @@ default-environment = "codegen"
 cmd = "bash scripts/assert-sync-scanner.sh"
 
 [tool.pixi.feature.codegen.tasks.clean]
-cmd = "git clean -fdx --exclude=node_modules --exclude='.*' --exclude='*.md' --exclude=pixi.lock --exclude=wildcard && rm -rf build dist"
+cmd = "git clean -fdx --exclude=node_modules --exclude='.*' --exclude='*.md' --exclude=pixi.lock && rm -rf build dist"
 default-environment = "codegen"
 
 [tool.pixi.feature.codegen.tasks.codegen]
-cmd = "tree-sitter generate && tree-sitter init && (cd wildcard && tree-sitter generate)"
+cmd = "tree-sitter generate && tree-sitter init && (cd snakemake_iostr && tree-sitter generate)"
 depends-on = ["sync-scanner"]
 default-environment = "codegen"
 
@@ -81,8 +81,8 @@ cmd = "tree-sitter test"
 default-environment = "dev"
 depends-on = ["sync-scanner"]
 
-[tool.pixi.feature.dev.tasks.test-wildcard]
-cmd = "(cd wildcard && tree-sitter test)"
+[tool.pixi.feature.dev.tasks.test-snakemake_iostr]
+cmd = "(cd snakemake_iostr && tree-sitter test)"
 default-environment = "dev"
 
 [tool.pixi.feature.dev.tasks.test-html]
@@ -90,7 +90,7 @@ cmd = "python scripts/test_highlight_injection.py"
 default-environment = "dev"
 
 [tool.pixi.feature.dev.tasks.tests]
-depends-on = ["test-snakemake", "test-wildcard", "test-html"]
+depends-on = ["test-snakemake", "test-snakemake_iostr", "test-html"]
 
 [tool.pixi.tasks.clean-tests]
 depends-on = ["clean", "npm-install", "codegen", "tests"]

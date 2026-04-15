@@ -125,8 +125,8 @@ module.exports = grammar(PYTHON, {
         )),
 
         rule_import_list: $ => choice(
-          prec.right(commaSep1($.identifier)),
-          seq("(", commaSep1($.identifier), ")")
+            prec.right(commaSep1($.identifier)),
+            seq("(", commaSep1($.identifier), ")")
         ),
 
         // as of snakemake 8.4.8, a parenthesized rule exclude list is
@@ -148,8 +148,8 @@ module.exports = grammar(PYTHON, {
 
         // analogous to tree-sitter-python: _suite
         _rule_suite: $ => choice(
-          seq($._indent, $.rule_body),
-          $._newline,
+            seq($._indent, $.rule_body),
+            $._newline,
         ),
 
         // analogous to tree-sitter-python: block
@@ -171,7 +171,7 @@ module.exports = grammar(PYTHON, {
             $._rule_directive_block
         ), $.directive),
 
-        // Rule directives with wildcard definitions (injected by snakemake_wildcard sub-grammar)
+        // Rule directives with wildcard definitions (injected by snakemake_iostr sub-grammar)
         _rule_directive_wc_def: $ => new_directive(
             choice(
                 "benchmark",
@@ -184,7 +184,7 @@ module.exports = grammar(PYTHON, {
             $._directive_parameters_wc_none
         ),
 
-        // Rule directives with wildcard interpolations (injected by snakemake_wildcard sub-grammar)
+        // Rule directives with wildcard interpolations (injected by snakemake_iostr sub-grammar)
         _rule_directive_wc_interp: $ => new_directive(
             choice(
                 "message",
@@ -335,20 +335,20 @@ module.exports = grammar(PYTHON, {
 });
 
 function commaSep1(rule, sep_trail = true) {
-  return sep1(rule, ',', sep_trail = sep_trail)
+    return sep1(rule, ',', sep_trail = sep_trail)
 }
 
 function sep1(rule, separator, sep_trail = true) {
-  if (sep_trail) {
-    return seq(rule, repeat(seq(separator, rule)), optional(separator))
-  } else {
-    return seq(rule, repeat(seq(separator, rule)))
-  }
+    if (sep_trail) {
+        return seq(rule, repeat(seq(separator, rule)), optional(separator))
+    } else {
+        return seq(rule, repeat(seq(separator, rule)))
+    }
 }
 
 function directiveParametersBlockOnly($, parameter_rules) {
     parameter_rules = choice(parameter_rules, $._IN_DIRECTIVE_PARAMETERS)
-    return(seq(
+    return (seq(
         parameter_rules,
         repeat(seq(",", parameter_rules)),
         optional(","),
@@ -368,11 +368,11 @@ function directiveParametersLineAndBlock($, parameter_rules) {
         optional(","),
         $._dedent
     )
-    return(choice(line, lineAndblock, $._newline))
+    return (choice(line, lineAndblock, $._newline))
 }
 
 function combineDirectiveParameters($, blockOnly, lineAndBlock) {
-    return(choice(
+    return (choice(
         seq($._indent, alias(blockOnly, $.directive_parameters)),
         alias(lineAndBlock, $.directive_parameters),
     ))

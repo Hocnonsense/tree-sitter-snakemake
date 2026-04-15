@@ -15,7 +15,7 @@
 //     {{                escaped literal {
 
 module.exports = grammar({
-    name: 'snakemake_wildcard',
+    name: 'snakemake_iostr',
 
     // Do not skip any whitespace: the injected content is raw string text
     // and every character is significant.

@@ -56,14 +56,14 @@ src/*
 bindings/*
 binding.gyp
 
-# wildcard sub-grammar source files (hand-written, must be tracked)
-wildcard/src/*
-!wildcard/grammar.js
-!wildcard/queries/
-!wildcard/queries/highlights.scm
-!wildcard/test/
-!wildcard/test/corpus/
-!wildcard/test/corpus/wildcards.txt
+# sub-grammar source files for snakemake string (wildcards and pathvars)
+snakemake_iostr/src/*
+!snakemake_iostr/grammar.js
+!snakemake_iostr/queries/
+!snakemake_iostr/queries/highlights.scm
+!snakemake_iostr/test/
+!snakemake_iostr/test/corpus/
+!snakemake_iostr/test/corpus/wildcards.txt
 
 # highlight injection test (uses tree-sitter highlight --html, not tree-sitter test)
 !scripts/test_highlight_theme.json
