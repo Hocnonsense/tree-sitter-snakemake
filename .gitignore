@@ -66,9 +66,9 @@ snakemake_iostr/src/*
 !snakemake_iostr/test/corpus/wildcards.txt
 
 # highlight injection test (uses tree-sitter highlight --html, not tree-sitter test)
-!scripts/test_highlight_theme.json
-!scripts/test_highlight_injection.smk
-!scripts/test_highlight_injection.py
+!tests/test_highlight_theme.json
+!tests/test_highlight_injection.smk
+!tests/test_highlight_injection.py
 
 # pixi environments
 .pixi/*

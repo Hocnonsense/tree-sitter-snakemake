@@ -19,10 +19,8 @@ jobs:
 
       - uses: prefix-dev/setup-pixi@v0.8.5
         with:
-          environments: dev codegen
+          environments: build dev
       - name: Check grammar.c modification
         run: pixi run npm-install && pixi run assert-sync-scanner
       - name: Test grammar
-        run: pixi run codegen && pixi run test
-      - name: Test Python binding
-        run: pixi run --environment dev pytest bindings/python/tests/
+        run: pixi run build && pixi run test
