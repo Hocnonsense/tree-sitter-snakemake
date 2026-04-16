@@ -1,0 +1,62 @@
+{
+  "classes": [
+    "Path",
+    "WorkflowError"
+  ],
+  "builtin_objects": [
+    "access",
+    "checkpoints",
+    "config",
+    "gather",
+    "rules",
+    "scatter",
+    "snakemake",
+    "storage",
+    "workflow"
+  ],
+  "job_params": [
+    "config",
+    "input",
+    "log",
+    "output",
+    "params",
+    "resources",
+    "threads",
+    "wildcards"
+  ],
+  "helper_functions": [
+    "ancient",
+    "before_update",
+    "branch",
+    "collect",
+    "directory",
+    "ensure",
+    "evaluate",
+    "exists",
+    "expand",
+    "extract_checksum",
+    "flag",
+    "flatten",
+    "from_queue",
+    "github",
+    "gitfile",
+    "gitlab",
+    "glob_wildcards",
+    "local",
+    "lookup",
+    "multiext",
+    "parse_input",
+    "pipe",
+    "protected",
+    "repeat",
+    "report",
+    "service",
+    "shell",
+    "subpath",
+    "temp",
+    "temporary",
+    "touch",
+    "unpack",
+    "update"
+  ]
+}
