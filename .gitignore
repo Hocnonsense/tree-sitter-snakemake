@@ -56,6 +56,8 @@ src/*
 bindings/*
 binding.gyp
 
+!directives.json
+
 # sub-grammar source files for snakemake string (wildcards and pathvars)
 snakemake_iostr/src/*
 !snakemake_iostr/grammar.js

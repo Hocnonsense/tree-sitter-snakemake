@@ -161,26 +161,19 @@ rule all:
   conda: a
   container: a
   singularity: a
-  run:
-    if a:
-      pass
-  shell: a
-  script: a
-  notebook: a
   shadow: a
   priority: 1
   retries: 2
-  cwl: a
   localrule: False
   handover: True
-  wrapper: a
   wildcard_constraints:
     a = "x"
-  template_engine:
-    "jinja2"
   default_target: True
   envmodules: "a"
   group: "a"
+  run:
+    if a:
+      pass
 
 -------------------------------------------------------------------------------
 
@@ -230,21 +223,6 @@ rule all:
         arguments: (directive_parameters
           (identifier)))
       (directive
-        body: (block
-          (if_statement
-            condition: (identifier)
-            consequence: (block
-              (pass_statement)))))
-      (directive
-        arguments: (directive_parameters
-          (identifier)))
-      (directive
-        arguments: (directive_parameters
-          (identifier)))
-      (directive
-        arguments: (directive_parameters
-          (identifier)))
-      (directive
         arguments: (directive_parameters
           (identifier)))
       (directive
@@ -253,9 +231,6 @@ rule all:
       (directive
         arguments: (directive_parameters
           (integer)))
-      (directive
-        arguments: (directive_parameters
-          (identifier)))
       (directive
         arguments: (directive_parameters
           (false)))
@@ -264,15 +239,9 @@ rule all:
           (true)))
       (directive
         arguments: (directive_parameters
-          (identifier)))
-      (directive
-        arguments: (directive_parameters
           (keyword_argument
             name: (identifier)
             value: (string (string_start) (string_content) (string_end)))))
-      (directive
-        arguments: (directive_parameters
-          (string (string_start) (string_content) (string_end))))
       (directive
         arguments: (directive_parameters
           (true)))
@@ -282,6 +251,12 @@ rule all:
       (directive
         arguments: (directive_parameters
           (string (string_start) (string_content) (string_end))))
+      (directive
+        body: (block
+          (if_statement
+            condition: (identifier)
+            consequence: (block
+              (pass_statement)))))
     )
   )
 )

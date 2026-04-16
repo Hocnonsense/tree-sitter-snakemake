@@ -15,9 +15,6 @@ rule ruleA:
         "cat {input:q} > {output.d:q}"
         f"{input:d}"
         "{input}"
-    run:
-        threads + 5
-#       ^^^^^^^ label
 
 threads = 3
 #^^^^^^ !label

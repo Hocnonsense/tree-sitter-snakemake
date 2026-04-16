@@ -1,4 +1,6 @@
 const PYTHON = require("tree-sitter-python/grammar")
+const DIRECTIVES = require("./directives.json")
+
 module.exports = grammar(PYTHON, {
     // For reference, see:
     // https://snakemake.readthedocs.io/en/stable/snakefiles/writing_snakefiles.html#grammar
@@ -11,7 +13,8 @@ module.exports = grammar(PYTHON, {
 
     inline: ($, original) => original.concat([
         $._simple_directive,
-        $._rule_directive,
+        $._use_rule_directive,
+        $._rule_directive_run,
         $._module_directive,
     ]),
 
@@ -28,7 +31,7 @@ module.exports = grammar(PYTHON, {
         ),
 
         _simple_directive: $ => alias(choice(
-            $._simple_directive_wc_none,
+            $._simple_directive_params,
             $._simple_directive_block,
             $.localrules_directive,
             $.ruleorder_directive
@@ -41,37 +44,23 @@ module.exports = grammar(PYTHON, {
             $.concatenated_string
         ), $._newline),
 
-        _simple_directive_wc_none: $ => new_directive(
-            choice(
-                "configfile",
-                "container",
-                "envvars",
-                "include",
-                "pepfile",
-                "pepschema",
-                "scattergather",
-                "version",
-                "wildcard_constraints",
-                "workdir"
-            ),
+        _simple_directive_params: $ => new_directive(
+            choice(...DIRECTIVES.params.filter(
+                d => !["localrules", "ruleorder"].includes(d)
+            )),
             "arguments",
             $._directive_parameters_wc_none
         ),
-
-        _simple_directive_block: $ => new_directive(
-            choice(
-                "onerror",
-                "onstart",
-                "onsuccess"
-            ),
-            "body",
-            $._suite
-        ),
-
         localrules_directive: $ => new_directive("localrules", "arguments",
             $._directive_parameters_identifiers),
         ruleorder_directive: $ => new_directive("ruleorder", "arguments",
             $._directive_parameters_ruleorder),
+
+        _simple_directive_block: $ => new_directive(
+            choice(...DIRECTIVES.python),
+            "body",
+            $._suite
+        ),
 
         _compound_directive: $ => choice(
             $.rule_definition,
@@ -120,7 +109,7 @@ module.exports = grammar(PYTHON, {
             optional(seq(
                 "with",
                 ":",
-                field("body", $._rule_suite)
+                field("body", $._use_rule_suite)
             ))
         )),
 
@@ -143,87 +132,60 @@ module.exports = grammar(PYTHON, {
             field("alias", alias($.identifier, $.as_pattern_target)),
             "with",
             ":",
-            field("body", $._rule_suite)
+            field("body", $._use_rule_suite)
         ),
 
         // analogous to tree-sitter-python: _suite
+        _use_rule_suite: $ => choice(
+            seq($._indent, $.use_rule_body),
+            $._newline,
+        ),
+        // analogous to tree-sitter-python: block
+        use_rule_body: $ => seq(
+            optional($._docstring),
+            repeat($._use_rule_directive),
+            $._dedent
+        ),
+
         _rule_suite: $ => choice(
             seq($._indent, $.rule_body),
             $._newline,
         ),
-
-        // analogous to tree-sitter-python: block
+        // can accept runable directives
         rule_body: $ => seq(
             optional($._docstring),
-            repeat($._rule_directive),
+            repeat($._use_rule_directive),
+            optional($._rule_directive_run),
             $._dedent
         ),
 
-        // Directives which can appear in rule definitions
-        _rule_directive: $ => alias(choice(
-            $._rule_directive_wc_def,
-            $._rule_directive_wc_interp,
-            $._rule_directive_wc_none,
-            $._rule_directive_block
-        ), $.directive),
-
-        // Rule directives with wildcard definitions (injected by snakemake_iostr sub-grammar)
-        _rule_directive_wc_def: $ => new_directive(
-            choice(
-                "benchmark",
-                "conda",
-                "input",
-                "log",
-                "output"
+        // Terminal rule directives: `run`-style directives may appear at most
+        // once and only at the end of a rule body.
+        __rule_directive_run: $ => choice(
+            new_directive(
+                ...DIRECTIVES.statements.rule.run.python,  // only "run"
+                "body",
+                $._suite
             ),
+            new_directive(
+                choice(...DIRECTIVES.statements.rule.run.shell),
+                "arguments",
+                $._directive_parameters_wc_none
+            )
+        ),
+        _rule_directive_run: $ => alias(
+            $.__rule_directive_run,
+            $.directive
+        ),
+
+        __use_rule_directive: $ => new_directive(
+            choice(...DIRECTIVES.statements.rule.params),
             "arguments",
             $._directive_parameters_wc_none
         ),
-
-        // Rule directives with wildcard interpolations (injected by snakemake_iostr sub-grammar)
-        _rule_directive_wc_interp: $ => new_directive(
-            choice(
-                "message",
-                "notebook",
-                "script",
-                "shell"
-            ),
-            "arguments",
-            $._directive_parameters_wc_none
-        ),
-
-        // Rule directives without wildcards
-        _rule_directive_wc_none: $ => new_directive(
-            choice(
-                "cache",
-                "container",
-                "cwl",
-                "default_target",
-                "envmodules",
-                "group",
-                "handover",
-                "localrule",
-                "name",
-                "params",
-                "priority",
-                "resources",
-                "retries",
-                "shadow",
-                "singularity",
-                "template_engine",
-                "threads",
-                "wildcard_constraints",
-                "wrapper"
-            ),
-            "arguments",
-            $._directive_parameters_wc_none
-        ),
-
-        // Rule directives with code blocks
-        _rule_directive_block: $ => new_directive(
-            "run",
-            "body",
-            $._suite
+        _use_rule_directive: $ => alias(
+            $.__use_rule_directive,
+            $.directive
         ),
 
         module_definition: $ => seq(
@@ -236,30 +198,20 @@ module.exports = grammar(PYTHON, {
         module_body: $ => choice(
             seq(
                 $._indent,
-                repeat(
-                    choice(
-                        $._docstring,
-                        $._module_directive
-                    )
-                ),
+                optional($._docstring),
+                repeat($._module_directive),
                 $._dedent
             ),
             $._newline
         ),
 
         _module_directive: $ => alias(choice(
-            $._module_directive_wc_none,
+            $._module_directive_params,
         ), $.directive),
 
-        // Module directives without wildcards
-        _module_directive_wc_none: $ => new_directive(
-            choice(
-                "config",
-                "meta_wrapper",
-                "prefix",
-                "skip_validation",
-                "snakefile"
-            ),
+        // Module directives with parameter bodies.
+        _module_directive_params: $ => new_directive(
+            choice(...DIRECTIVES.statements.module.params),
             "arguments",
             $._directive_parameters_wc_none
         ),
