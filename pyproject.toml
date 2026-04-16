@@ -63,8 +63,8 @@ default-environment = "build"
 
 [tool.pixi.feature.dev.dependencies]
 python = "3.13.*"
-nodejs = ">=20"       # npm ci 需要
-tree-sitter-cli = "*" # tree-sitter generate / test 需要
+nodejs = ">=20"       # for npm ci
+tree-sitter-cli = "*" # for tree-sitter generate / test
 
 [tool.pixi.feature.dev.pypi-dependencies]
 tree-sitter-snakemake = { path = ".", editable = true }

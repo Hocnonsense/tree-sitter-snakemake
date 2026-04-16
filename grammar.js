@@ -6,7 +6,7 @@ module.exports = grammar(PYTHON, {
     name: "snakemake",
 
     externals: ($, original) => original.concat([
-        $._IN_DIRECTIVE_PARAMETERS // sentinel: tells scanner we are inside directive parameters
+        $._IN_DIRECTIVE_PARAMETERS // this is a sentinel token and is never emitted, tells scanner we are inside directive parameters
     ]),
 
     inline: ($, original) => original.concat([
@@ -22,9 +22,9 @@ module.exports = grammar(PYTHON, {
         ),
 
         _statement: ($, original) => choice(
-            original,
+            original,  // already set choice($._simple_statements, $._compound_statement) in PYTHON
             $._simple_directive,
-            $.rule_import
+            $.rule_import  // use rule fron module.
         ),
 
         _simple_directive: $ => alias(choice(
@@ -268,56 +268,24 @@ module.exports = grammar(PYTHON, {
             $._directive_parameters_wc_none
         ),
 
-
-        // DIRECTIVE PARAMETERS
-        //
-        // Directives can receive parameters
-        // -1- on a single line:
-        //      input: "x", "y"
-        // -2- on a line, followed by an indented block:
-        //      input: "x",
-        //          "y",
-        //          "y"
-        // -3- in an indented block:
-        //      input:
-        //          "x",
-        //          "y"
-        //
-        // All of these should be contained in a node (directive_parameters)
-        // The current way of defining two separate rules for each type of
-        // parameter collection is cumbersome.
-        // However, generating a choice rule and aliasing the whole thing as
-        // (directive_parameter) is not ideal, because it includes stray
-        // whitespace for option -3- (it includes the $._indent token).
-        // Aliasing the individual subrules in a function and returning a
-        // combination also does not work because then (directive_parameters)
-        // nodes are being generated, one for each parameter, and not one node
-        // for all parameters as a whole.
-        // This can only be avoided by explicitly defining the individual
-        // subrules before ($._..1/2, see below) and then aliasing those.
-
-        // Parameters for directives which do not support wildcards
-        _directive_parameters1: $ => directiveParametersBlockOnly($, $._directive_parameter),
-        _directive_parameters2: $ => directiveParametersLineAndBlock($, $._directive_parameter),
-        _directive_parameters_wc_none: $ => combineDirectiveParameters(
-            $,
-            $._directive_parameters1,
-            $._directive_parameters2
+        // Parameters for directives
+        _directive_parameters: $ => directiveParameters($, $._directive_parameter),
+        _directive_parameters_wc_none: $ => alias(
+            $._directive_parameters,
+            $.directive_parameters
         ),
 
         // Identifier list (for localrules)
-        _directive_parameters_identifiers1: $ => directiveParametersBlockOnly($, $.identifier),
-        _directive_parameters_identifiers2: $ => directiveParametersLineAndBlock($, $.identifier),
-        _directive_parameters_identifiers: $ => combineDirectiveParameters(
-            $,
-            $._directive_parameters_identifiers1,
-            $._directive_parameters_identifiers2,
+        __directive_parameters_identifiers: $ => directiveParameters($, $.identifier),
+        _directive_parameters_identifiers: $ => alias(
+            $.__directive_parameters_identifiers,
+            $.directive_parameters
         ),
 
         // Identifier comparisons (for ruleorder)
         __directive_parameters_ruleorder: $ => seq(
             $.identifier,
-            optional(repeat1(seq(">", $.identifier)))
+            repeat(seq(">", $.identifier))  // should be repeat1, but relax
         ),
         _directive_parameters_ruleorder: $ => alias(
             $.__directive_parameters_ruleorder,
@@ -327,8 +295,8 @@ module.exports = grammar(PYTHON, {
         _directive_parameter: $ => choice(
             $.expression,
             $.keyword_argument,
-            $.list_splat,
-            $.dictionary_splat
+            $.list_splat,  // *args
+            $.dictionary_splat  // **kwargs
         ),
 
     }
@@ -346,36 +314,43 @@ function sep1(rule, separator, sep_trail = true) {
     }
 }
 
-function directiveParametersBlockOnly($, parameter_rules) {
-    parameter_rules = choice(parameter_rules, $._IN_DIRECTIVE_PARAMETERS)
-    return (seq(
-        parameter_rules,
-        repeat(seq(",", parameter_rules)),
-        optional(","),
-        $._dedent
-    ))
-}
+/*  DIRECTIVE PARAMETERS
 
-function directiveParametersLineAndBlock($, parameter_rules) {
+    Directives can receive parameters
+    -1- on a single line:
+         input: "x", "y"
+    -2- on a line, followed by an indented block:
+         input: "x",
+             "y",
+             "y"
+    -3- in an indented block:
+         input:
+             "x",
+             "y"
+    -4- empty:
+        input:
+
+    This helper builds the raw parameter-list shape for one of those forms.
+    Call sites alias the result as (directive_parameters),
+    so different directive-specific item types (generic parameters, identifiers, etc.)
+    still produce the same public AST node.
+ */
+function directiveParameters($, parameter_rules) {
+    // Include _IN_DIRECTIVE_PARAMETERS in the choice
+    //  so it remains a valid symbol at each parameter position.
+    // ([Snakemake scanner](src/scanner.c) checks this label to
+    //  suppresses NEWLINE/DEDENT between parameters
+    //  and keeps multiline parameter lists together.)
     parameter_rules = choice(parameter_rules, $._IN_DIRECTIVE_PARAMETERS)
     let rules = seq(parameter_rules, repeat(seq(",", parameter_rules)))
+    // Parameters written entirely on the directive line.
     let line = seq(rules, optional(","), $._newline)
-    let lineAndblock = seq(
-        rules,
-        ",",
-        $._indent,
-        rules,
-        optional(","),
-        $._dedent
-    )
-    return (choice(line, lineAndblock, $._newline))
-}
-
-function combineDirectiveParameters($, blockOnly, lineAndBlock) {
-    return (choice(
-        seq($._indent, alias(blockOnly, $.directive_parameters)),
-        alias(lineAndBlock, $.directive_parameters),
-    ))
+    // Parameters written entirely in the following indented block.
+    let block = seq($._indent, rules, optional(","), $._dedent)
+    // Parameters split between the directive line and the following block.
+    let lineAndblock = seq(rules, ",", block)
+    // Also allow an empty parameter list, e.g. `input:`.
+    return (choice(line, lineAndblock, block, $._newline))
 }
 
 function new_directive(name, body_name, parameters) {
