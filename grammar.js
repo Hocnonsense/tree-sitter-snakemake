@@ -1,6 +1,25 @@
 const PYTHON = require("tree-sitter-python/grammar")
 const DIRECTIVES = require("./directives.json")
 
+global_directives_special = {
+    localrules: $ => new_directive(
+        "localrules",
+        "arguments",
+        $._directive_parameters_identifiers
+    ),
+    ruleorder: $ => new_directive(
+        "ruleorder",
+        "arguments",
+        $._directive_parameters_ruleorder
+    ),
+    storage: $ => seq(
+        field("name", "storage"),
+        field("storage_name", $.identifier),
+        ":",
+        field("arguments", $._directive_parameters)
+    )
+}
+
 module.exports = grammar(PYTHON, {
     // For reference, see:
     // https://snakemake.readthedocs.io/en/stable/snakefiles/writing_snakefiles.html#grammar
@@ -12,7 +31,6 @@ module.exports = grammar(PYTHON, {
     ]),
 
     inline: ($, original) => original.concat([
-        $._simple_directive,
         $._use_rule_directive,
         $._rule_directive_run,
         $._module_directive,
@@ -32,9 +50,8 @@ module.exports = grammar(PYTHON, {
 
         _simple_directive: $ => alias(choice(
             $._simple_directive_params,
+            $._simple_directive_special,
             $._simple_directive_block,
-            $.localrules_directive,
-            $.ruleorder_directive
         ), $.directive),
 
         // The $._newline separator is important to resolve ambiguities between
@@ -46,15 +63,14 @@ module.exports = grammar(PYTHON, {
 
         _simple_directive_params: $ => new_directive(
             choice(...DIRECTIVES.params.filter(
-                d => !["localrules", "ruleorder"].includes(d)
+                d => !Object.keys(global_directives_special).includes(d)
             )),
             "arguments",
-            $._directive_parameters_wc_none
+            $._directive_parameters
         ),
-        localrules_directive: $ => new_directive("localrules", "arguments",
-            $._directive_parameters_identifiers),
-        ruleorder_directive: $ => new_directive("ruleorder", "arguments",
-            $._directive_parameters_ruleorder),
+        _simple_directive_special: $ => choice(
+            ...Object.values(global_directives_special).map(fn => fn($))
+        ),
 
         _simple_directive_block: $ => new_directive(
             choice(...DIRECTIVES.python),
@@ -170,7 +186,7 @@ module.exports = grammar(PYTHON, {
             new_directive(
                 choice(...DIRECTIVES.statements.rule.run.shell),
                 "arguments",
-                $._directive_parameters_wc_none
+                $._directive_parameters
             )
         ),
         _rule_directive_run: $ => alias(
@@ -181,7 +197,7 @@ module.exports = grammar(PYTHON, {
         __use_rule_directive: $ => new_directive(
             choice(...DIRECTIVES.statements.rule.params),
             "arguments",
-            $._directive_parameters_wc_none
+            $._directive_parameters
         ),
         _use_rule_directive: $ => alias(
             $.__use_rule_directive,
@@ -213,13 +229,13 @@ module.exports = grammar(PYTHON, {
         _module_directive_params: $ => new_directive(
             choice(...DIRECTIVES.statements.module.params),
             "arguments",
-            $._directive_parameters_wc_none
+            $._directive_parameters
         ),
 
         // Parameters for directives
-        _directive_parameters: $ => directiveParameters($, $._directive_parameter),
-        _directive_parameters_wc_none: $ => alias(
-            $._directive_parameters,
+        __directive_parameters: $ => directiveParameters($, $._directive_parameter),
+        _directive_parameters: $ => alias(
+            $.__directive_parameters,
             $.directive_parameters
         ),
 

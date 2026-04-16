@@ -16,10 +16,20 @@ ruleorder: a > b
 scattergather:
     a = 1,
     b = 2
+pathvars:
+    results = "results"
+resource_scopes:
+    mem_mb = "local"
 pepfile: "a"
 pepschema:
   "b"
+report: "report.html"
 envvars: "ABC", "DEF"
+inputflags: "temp", "protected"
+outputflags: "temp", "protected"
+storage s3:
+  provider = "s3",
+  keep_local = True
 
 -------------------------------------------------------------------------------
 
@@ -68,6 +78,28 @@ envvars: "ABC", "DEF"
         (integer))))
   (directive
     (directive_parameters
+      (keyword_argument
+        (identifier)
+        (string
+          (string_start)
+          (string_content)
+          (string_end)))))
+  (directive
+    (directive_parameters
+      (keyword_argument
+        (identifier)
+        (string
+          (string_start)
+          (string_content)
+          (string_end)))))
+  (directive
+    (directive_parameters
+      (string
+        (string_start)
+        (string_content)
+        (string_end))))
+  (directive
+    (directive_parameters
       (string
         (string_start)
         (string_content)
@@ -88,6 +120,38 @@ envvars: "ABC", "DEF"
         (string_start)
         (string_content)
         (string_end))))
+  (directive
+    (directive_parameters
+      (string
+        (string_start)
+        (string_content)
+        (string_end))
+      (string
+        (string_start)
+        (string_content)
+        (string_end))))
+  (directive
+    (directive_parameters
+      (string
+        (string_start)
+        (string_content)
+        (string_end))
+      (string
+        (string_start)
+        (string_content)
+        (string_end))))
+  (directive
+    (identifier)
+    (directive_parameters
+      (keyword_argument
+        (identifier)
+        (string
+          (string_start)
+          (string_content)
+          (string_end)))
+      (keyword_argument
+        (identifier)
+        (true))))
 )
 
 
