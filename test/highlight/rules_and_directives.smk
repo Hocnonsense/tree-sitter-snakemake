@@ -39,3 +39,31 @@ checkpoint X:
 #    ^^^^^ label
     output: 2
 #   ^^^^^ label
+
+rule pyrefs:
+#^^^^ keyword
+#    ^^^^^^ type
+    run:
+        rules.foo
+#       ^^^^^ variable.builtin
+#             ^^^ variable
+        checkpoints.bar.get
+#       ^^^^^^^^^^^ variable.builtin
+#                   ^^^ variable
+#                       ^^^ function.builtin
+        output.foo
+#       ^^^^^^ label
+#              ^^^ variable
+        input.bar
+#       ^^^^^ label
+#             ^^^ variable
+        Path
+#       ^^^^ type
+        WorkflowError
+#       ^^^^^^^^^^^^^ type
+        snakemake
+#       ^^^^^^^^^ variable.builtin
+        access
+#       ^^^^^^ variable.builtin
+        expand("x")
+#       ^^^^^^ function.builtin

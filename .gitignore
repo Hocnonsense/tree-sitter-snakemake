@@ -57,6 +57,8 @@ bindings/*
 binding.gyp
 
 !directives.json
+!highlights.json
+!queries/snakemake/highlights.template.scm
 
 # sub-grammar source files for snakemake string (wildcards and pathvars)
 snakemake_iostr/src/*
@@ -71,6 +73,7 @@ snakemake_iostr/src/*
 !tests/test_highlight_theme.json
 !tests/test_highlight_injection.smk
 !tests/test_highlight_injection.py
+!tests/update_highlights.js
 
 # pixi environments
 .pixi/*
