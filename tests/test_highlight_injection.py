@@ -15,96 +15,175 @@ Run:  pytest tests/test_highlight_injection.py
 """
 
 import re
+from html.parser import HTMLParser
+from tempfile import NamedTemporaryFile
 import subprocess
-import sys
-from pathlib import Path
 import json
 
-REPO = Path(__file__).resolve().parent.parent
-THEME = REPO / "tests/test_highlight_theme.json"
-with THEME.open() as f:
-    COLOR_TO_CAPTURE = {k["color"]: v for v, k in json.load(f)["theme"].items()}
+COLOR_TO_CAPTURE = {
+    "#aa0000": "variable",
+    "#bb0000": "variable.builtin",
+    "#cc0000": "variable.parameter.builtin",
+    "#00aa00": "label",
+    "#0000aa": "string.escape",
+    "#aa00aa": "keyword",
+    "#00aaaa": "type",
+}
+COLOR_TO_THEME = {"theme": {v: {"color": k} for k, v in COLOR_TO_CAPTURE.items()}}
 
 
-def get_highlights(smk_file: Path, theme_file: Path):
-    """Return list of (text, capture_name) for every highlighted span."""
-    result = subprocess.run(
-        [
-            "tree-sitter",
-            "highlight",
-            "--html",
-            "--config-path",
-            str(theme_file),
-            str(smk_file),
-        ],
-        capture_output=True,
-        text=True,
-    )
-    if result.returncode != 0:
-        print("tree-sitter highlight failed:", result.stderr, file=sys.stderr)
-        sys.exit(1)
+class HighlightHTMLParser(HTMLParser):
+    """Extract (text, capture_name) tuples from tree-sitter HTML output."""
 
-    highlights: list[tuple[str, str]] = []
-    for m in re.finditer(r"<span style='([^']+)'>([^<]+)</span>", result.stdout):
-        style, raw = m.group(1), m.group(2)
-        text = (
-            raw.replace("&quot;", '"')
-            .replace("&amp;", "&")
-            .replace("&gt;", ">")
-            .replace("&lt;", "<")
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.parts: list[tuple[str, str]] = []
+        self._capture_stack = [""]
+        self._in_body = False
+        self._in_table = False
+        self._in_line_cell = False
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]):
+        attr_map = dict(attrs)
+
+        if tag == "body":
+            self._in_body = True
+            return
+        if tag == "table" and self._in_body:
+            self._in_table = True
+            return
+        if tag == "td" and self._in_table:
+            self._in_line_cell = attr_map.get("class") == "line"
+            return
+        if tag == "span" and self._in_line_cell:
+            style = attr_map.get("style", "") or ""
+            self._capture_stack.append(self._capture_from_style(style))
+
+    def handle_endtag(self, tag: str):
+        if tag == "span" and self._in_line_cell and len(self._capture_stack) > 1:
+            self._capture_stack.pop()
+            return
+        if tag == "td" and self._in_table:
+            self._in_line_cell = False
+            return
+        if tag == "table":
+            self._in_table = False
+            return
+        if tag == "body":
+            self._in_body = False
+
+    def handle_data(self, data: str):
+        if self._in_line_cell and data:
+            self.parts.append((data, self._capture_stack[-1]))
+
+    def _capture_from_style(self, style: str):
+        color = re.search(r"#[0-9a-fA-F]{6}", style)
+        if not color:
+            return ""
+        return color.group().lower()
+
+
+def get_highlights(snakecode: str):
+    """Return ordered (text, capture_name_or_empty) tuples from highlighted HTML."""
+    with (
+        NamedTemporaryFile("w", suffix=".json", delete=False) as tmptheme,
+        NamedTemporaryFile("w", suffix=".smk", delete=False) as tmpsmk,
+    ):
+        tmpsmk.write(snakecode)
+        tmpsmk.flush()
+        tmptheme.write(json.dumps(COLOR_TO_THEME))
+        tmptheme.flush()
+        result = subprocess.run(
+            [
+                "tree-sitter",
+                "highlight",
+                "--html",
+                "--config-path",
+                str(tmptheme.name),
+                str(tmpsmk.name),
+            ],
+            capture_output=True,
+            text=True,
         )
-        color = re.search(r"#[0-9a-f]{6}", style)
-        if color and (capture := COLOR_TO_CAPTURE.get(color.group())):
-            highlights.append((text, capture))
-    return highlights
+    assert result.returncode == 0, f"tree-sitter highlight failed: {result.stderr}"
+
+    html_parser = HighlightHTMLParser()
+    html_parser.feed(result.stdout)
+    html_parser.close()
+    return [(s, COLOR_TO_CAPTURE.get(l, "")) for s, l in html_parser.parts]
+
+
+def test_rule_and_direvtives():
+    example = (
+        "rule ruleA:\n"
+        "    # comment\n"
+        '    input: a = "b",\n'
+        '        b = "c",\n'
+        '        c = "{sample}.txt",\n'
+        '    output: "{sample}.tsv",\n'
+        "# comment\n"
+        "        # comment\n"
+        '        d = "d"\n'
+        "    shell:\n"
+        "#   ^^^^^ label\n"
+        '        "cat {input:q} > {output.d:q}"\n'
+        '        f"{input:d}"\n'
+        '        "{input}"\n'
+        "    run:\n"
+        "        threads + 5\n"
+        "#       ^^^^^^^ label\n"
+    )
+    highlights = get_highlights(example)
+    assert highlights == [
+        *(("rule", "keyword"), (" ", ""), ("ruleA", "type"), (":\n", "")),
+        ("    # comment\n", ""),
+        ("    ", ""),
+        *(("input", "label"), (': a = "b",\n', ""), ('        b = "c",\n', "")),
+        *(('        c = "{', ""), ("sample", "variable"), ('}.txt",\n', "")),
+        ("    ", ""),
+        *(("output", "label"), (': "{', ""), ("sample", "variable"), ('}.tsv",\n', "")),
+        ("# comment\n", ""),
+        ("        # comment\n", ""),
+        ('        d = "d"\n', ""),
+        ("    ", ""),
+        *(("shell", "label"), (":\n", ""), ("#   ^^^^^ label\n", "")),
+        *(('        "cat {', ""), ("input", "label"), (":", "")),
+        ("q", "variable.parameter.builtin"),
+        *(("} > {", ""), ("output.d", "label"), (":", "")),
+        ("q", "variable.parameter.builtin"),
+        *(('}"\n', ""), ('        f"{', ""), ("input", "label"), (':d}"\n', "")),
+        *(('        "{', ""), ("input", "label"), ('}"\n', "")),
+        *(("    ", ""), ("run", "label"), (":\n", "")),
+        *(("        ", ""), ("threads", "label"), (" + 5\n", "")),
+        ("#       ^^^^^^^ label\n", ""),
+    ]
 
 
 def test_wildcards():
-    test_file = REPO / "tests/test_highlight_injection.smk"
-    highlights = get_highlights(test_file, THEME)
-
-    def expect(text: str, capture: str) -> None:
-        actual = {c for t, c in highlights if t == text} or {"unhighlighted"}
-        assert capture in actual, f"'{text}' should be @{capture} (got: {actual})"
-
-    def expect_not(text: str, capture: str) -> None:
-        actual = {c for t, c in highlights if t == text} or {"unhighlighted"}
-        assert (
-            capture not in actual
-        ), f"'{text}' should NOT be @{capture} (got: {actual})"
-
-    # --- wildcard definitions (input/output directives) ---
-    # {sample} in plain strings → @variable (user-defined wildcard name)
-    expect("sample", "variable")
-
-    # --- wildcard interpolations (shell directive) ---
-    # {input:q} → name=input (@label), flag=q (@variable.parameter.builtin)
-    expect("input", "label")
-    expect("q", "variable.parameter.builtin")
-
-    # {output} → @label (directive reference)
-    expect("output", "label")
-
-    # {input.a}, {output.b} → whole dotted name is @label
-    expect("input.a", "label")
-    expect("output.b", "label")
-
-    # --- escaped braces ---
-    # {{...}} → @string.escape for each {{ and }}
-    expect("{{", "string.escape")
-    expect("}}", "string.escape")
-
-    # --- f-strings are NOT injected ---
-    # f"{input:q}" uses Python interpolation, not snakemake_iostr;
-    # "input" inside is an identifier, not a wildcard name → no @label from injection
-    # (the directive keyword "input:" above produces a separate @label entry,
-    #  but f-string content should not add another one beyond what the main grammar sees)
-    # This is verified indirectly: no @variable.parameter.builtin from f-string "q"
-    # since f-string {input:q} parses "q" as a format_spec, not a wildcard flag.
-    # We check that "q" only appears once (from the plain-string {input:q}).
-    q_captures = [(t, c) for t, c in highlights if t == "q"]
-    assert len(q_captures) == 1, (
-        f"  FAIL  'q' should appear exactly once as @variable.parameter.builtin"
-        f" (got {q_captures})"
+    example = (
+        "rule wildcard_highlights:\n"
+        '    input: "{sample}.txt"\n'
+        '    output: "{sample}.tsv"\n'
+        "    shell:\n"
+        '        "cat {input:q} > {output}"\n'
+        '        "{input.a} {output.b}"\n'
+        '        "{{escaped}}"\n'
+        '        f"{input:q}"\n'
     )
-    print(f"highlight injection tests passed  ({len(highlights)} highlighted spans)")
+    highlights = get_highlights(example)
+    assert highlights == [
+        *(("rule", "keyword"), (" ", ""), ("wildcard_highlights", "type"), (":\n", "")),
+        *(("    ", ""), ("input", "label")),
+        *((': "{', ""), ("sample", "variable"), ('}.txt"\n', "")),
+        *(("    ", ""), ("output", "label")),
+        *((': "{', ""), ("sample", "variable"), ('}.tsv"\n', "")),
+        *(("    ", ""), ("shell", "label"), (":\n", "")),
+        *(('        "cat {', ""), ("input", "label"), (":", "")),
+        ("q", "variable.parameter.builtin"),
+        *(("} > {", ""), ("output", "label"), ('}"\n', "")),
+        *(('        "{', ""), ("input.a", "label"), ("} {", "")),
+        *(("output.b", "label"), ('}"\n', "")),
+        *(('        "', ""), ("{{", "string.escape"), ("escaped", "")),
+        *(("}}", "string.escape"), ('"\n', "")),
+        *(('        f"{', ""), ("input", "label"), (':q}"\n', "")),
+    ]
