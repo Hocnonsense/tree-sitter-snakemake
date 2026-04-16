@@ -154,12 +154,8 @@ module.exports = grammar(PYTHON, {
 
         // analogous to tree-sitter-python: block
         rule_body: $ => seq(
-            repeat(
-                choice(
-                    $._docstring,
-                    $._rule_directive
-                ),
-            ),
+            optional($._docstring),
+            repeat($._rule_directive),
             $._dedent
         ),
 
