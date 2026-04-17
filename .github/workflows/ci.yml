@@ -23,4 +23,4 @@ jobs:
       - name: Check grammar.c modification
         run: pixi run npm-install && pixi run assert-sync-scanner
       - name: Test grammar
-        run: pixi run build && pixi run test
+        run: pixi run build && pixi run tests
