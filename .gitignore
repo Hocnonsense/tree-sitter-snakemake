@@ -49,6 +49,13 @@ zig-out/
 *.tgz
 *.zip
 
+# github ci tests
+!.github/
+!.github/workflows/
+!.github/workflows/**.yml
+!release-please-config.json
+!.release-please-manifest.json
+
 # generated files
 src/*
 !src/scanner.c
@@ -74,6 +81,9 @@ snakemake_iostr/src/*
 !tests/test_highlight_injection.smk
 !tests/test_highlight_injection.py
 !tests/update_highlights.js
+
+# example nvim settings
+!.nvim-local/
 
 # pixi environments
 .pixi/*
