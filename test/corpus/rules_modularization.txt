@@ -127,14 +127,14 @@ use rule a from b as c with:
   (rule_inheritance
     name: (identifier)
     alias: (as_pattern_target)
-    body: (use_rule_body
+    body: (rule_body
       (directive
         arguments: (directive_parameters
           (identifier)))))
   (rule_import
     (rule_import_list (identifier))
     module_name: (identifier)
-    body: (use_rule_body
+    body: (rule_body
       (directive
         arguments: (directive_parameters
           (identifier)))))
@@ -142,7 +142,7 @@ use rule a from b as c with:
     (rule_import_list (identifier))
     module_name: (identifier)
     alias: (as_pattern_target)
-    body: (use_rule_body
+    body: (rule_body
       (directive
         arguments: (directive_parameters
           (identifier)))))

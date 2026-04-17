@@ -31,6 +31,7 @@ module.exports = grammar(PYTHON, {
     ]),
 
     inline: ($, original) => original.concat([
+        $._simple_directive,
         $._use_rule_directive,
         $._rule_directive_run,
         $._module_directive,
@@ -153,11 +154,11 @@ module.exports = grammar(PYTHON, {
 
         // analogous to tree-sitter-python: _suite
         _use_rule_suite: $ => choice(
-            seq($._indent, $.use_rule_body),
+            seq($._indent, $.rule_body),
             $._newline,
         ),
         // analogous to tree-sitter-python: block
-        use_rule_body: $ => seq(
+        rule_body: $ => seq(
             optional($._docstring),
             repeat($._use_rule_directive),
             $._dedent
