@@ -49,6 +49,11 @@ zig-out/
 *.tgz
 *.zip
 
+# github ci tests
+!.github/
+!.github/workflows/
+!.github/workflows/**.yml
+
 # generated files
 src/*
 !src/scanner.c

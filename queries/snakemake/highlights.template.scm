@@ -28,11 +28,26 @@
     "with"
   ] @keyword.import)
 
+(rule_import
+  (rule_import_list
+    (identifier) @type))
+
+(rule_import
+  module_name: (identifier) @type)
+
+(rule_import
+  alias: (as_pattern_target) @type)
+
 ; Rule inheritance
 (rule_inheritance
-  "use" @keyword
-  "rule" @keyword
-  "with" @keyword)
+  [
+    "use"
+    "rule"
+    "as"
+    "with"
+  ] @keyword
+  name: (identifier) @type
+  alias: (as_pattern_target) @type)
 
 ; directive labels in block context (eg. within 'run:')
 ((identifier) @label
