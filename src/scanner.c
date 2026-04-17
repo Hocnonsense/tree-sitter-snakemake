@@ -19,15 +19,8 @@ enum TokenType {
     CLOSE_BRACKET,
     CLOSE_BRACE,
     EXCEPT,
-    ALLOW_WC_DEF,
-    ALLOW_WC_INTERP,
-    DISALLOW_WC,
-    WILDCARD_DEF_OPEN,
-    WILDCARD_INTERP_OPEN,
     IN_DIRECTIVE_PARAMETERS
 };
-
-typedef enum { NONE, DEFINITION, INTERPOLATION } AllowWildcard;
 
 typedef enum {
     SingleQuote = 1 << 0,
@@ -93,61 +86,9 @@ static inline void set_end_character(Delimiter *delimiter, int32_t character) {
 typedef struct {
     Array(uint16_t) indents;
     Array(Delimiter) delimiters;
-    AllowWildcard allow_wc;
     bool inside_interpolated_string;
 } Scanner;
 
-
-// Opening bracket for wildcard interpolation
-static bool parse_wc_interp_open(TSLexer *lexer, const bool *valid_symbols, bool has_content) {
-    // Encountered '{' as next symbol and a wildcard interpolation is allowed
-    lexer->mark_end(lexer);
-    lexer->advance(lexer, false);
-    if (lexer->lookahead == '{') {
-        // Double {{ -> escaped.
-        lexer->advance(lexer, false);
-        lexer->mark_end(lexer);
-        lexer->result_symbol = STRING_CONTENT;
-        return true;
-    } else {
-        lexer->result_symbol = WILDCARD_INTERP_OPEN;
-        return true;
-    }
-}
-
-
-// Opening bracket for wildcard definition
-static bool parse_wc_def_open(
-        TSLexer *lexer,
-        const bool *valid_symbols,
-        bool has_content,
-        int32_t end_character) {
-    // Encountered '{' as next symbol and a wildcard definition is allowed
-    // Consume additional { - only the last one opens a wildcard.
-    lexer->mark_end(lexer);
-    lexer->advance(lexer, false);
-    while (lexer->lookahead == '{' && lexer->lookahead != end_character && !lexer->eof(lexer)) {
-        lexer->mark_end(lexer);
-        lexer->advance(lexer, false);
-        has_content = true;
-    }
-    if (has_content) {
-        lexer->result_symbol = STRING_CONTENT;
-    } else {
-        // Found an opening brace
-        if (lexer->lookahead == '}') {
-            // empty braces -> not a wildcard
-            lexer->mark_end(lexer);
-            lexer->advance(lexer, false);
-            lexer->result_symbol = STRING_CONTENT;
-        } else {
-            // braces have content -> wildcard
-            lexer->result_symbol = WILDCARD_DEF_OPEN;
-            lexer->advance(lexer, false);
-        }
-    }
-    return true;
-}
 
 static inline void advance(TSLexer *lexer) { lexer->advance(lexer, false); }
 
@@ -160,34 +101,11 @@ bool tree_sitter_snakemake_external_scanner_scan(void *payload, TSLexer *lexer, 
     bool within_brackets = valid_symbols[CLOSE_BRACE] || valid_symbols[CLOSE_PAREN] || valid_symbols[CLOSE_BRACKET];
     // directive parameters behave as if they were bracketed.
     // IN_DIRECTIVE_PARAMETERS is a sentinel token that is valid only within
-    // directive_parameters 
+    // directive_parameters
     within_brackets = within_brackets || valid_symbols[IN_DIRECTIVE_PARAMETERS];
 
-    // Set flag if and which wildcards are allowed. Affects string parsing.
-    if (valid_symbols[ALLOW_WC_DEF]) {
-        scanner->allow_wc = DEFINITION;
-        lexer->result_symbol = ALLOW_WC_DEF;
-        if (!error_recovery_mode) {
-            return true;
-        }
-    }
-    if (valid_symbols[ALLOW_WC_INTERP]) {
-        scanner->allow_wc = INTERPOLATION;
-        lexer->result_symbol = ALLOW_WC_INTERP;
-        if (!error_recovery_mode) {
-            return true;
-        }
-    }
-    if (valid_symbols[DISALLOW_WC]) {
-        scanner->allow_wc = NONE;
-        lexer->result_symbol = DISALLOW_WC;
-        if (!error_recovery_mode) {
-            return true;
-        }
-    }
-
     bool advanced_once = false;
-    if (valid_symbols[ESCAPE_INTERPOLATION] && scanner->allow_wc == NONE && scanner->delimiters.size > 0 &&
+    if (valid_symbols[ESCAPE_INTERPOLATION] && scanner->delimiters.size > 0 &&
         (lexer->lookahead == '{' || lexer->lookahead == '}') && !error_recovery_mode) {
         Delimiter *delimiter = array_back(&scanner->delimiters);
         if (is_format(delimiter)) {
@@ -210,20 +128,10 @@ bool tree_sitter_snakemake_external_scanner_scan(void *payload, TSLexer *lexer, 
         int32_t end_char = end_character(delimiter);
         bool has_content = advanced_once;
         while (lexer->lookahead) {
-            if (advanced_once || lexer->lookahead == '{' || lexer->lookahead == '}') {
-                // How brackets are handled depends on two factors:
-                // 1. Are we in a format string?
-                // 2. Are wildcards allowed?
-                if (is_format(delimiter)) {
-                    // Format string: no wildcards allowed
-                    lexer->mark_end(lexer);
-                    lexer->result_symbol = STRING_CONTENT;
-                    return has_content;
-                } else if (scanner->allow_wc == INTERPOLATION && lexer->lookahead == '{') {
-                    return parse_wc_interp_open(lexer, valid_symbols, has_content);
-                } else if (scanner->allow_wc == DEFINITION && lexer->lookahead == '{') {
-                    return parse_wc_def_open(lexer, valid_symbols, has_content, end_char);
-                }
+            if ((advanced_once || lexer->lookahead == '{' || lexer->lookahead == '}') && is_format(delimiter)) {
+                lexer->mark_end(lexer);
+                lexer->result_symbol = STRING_CONTENT;
+                return has_content;
             }
             if (lexer->lookahead == '\\') {
                 if (is_raw(delimiter)) {
@@ -464,7 +372,6 @@ unsigned tree_sitter_snakemake_external_scanner_serialize(void *payload, char *b
 
     size_t size = 0;
 
-    buffer[size++] = (char)scanner->allow_wc;
     buffer[size++] = (char)scanner->inside_interpolated_string;
 
     size_t delimiter_count = scanner->delimiters.size;
@@ -498,7 +405,6 @@ void tree_sitter_snakemake_external_scanner_deserialize(void *payload, const cha
     if (length > 0) {
         size_t size = 0;
 
-        scanner->allow_wc = (AllowWildcard)buffer[size++];
         scanner->inside_interpolated_string = (bool)buffer[size++];
 
         size_t delimiter_count = (uint8_t)buffer[size++];

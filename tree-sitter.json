@@ -15,6 +15,14 @@
       "highlights": "queries/snakemake/highlights.scm",
       "injections": "queries/snakemake/injections.scm",
       "locals": "queries/snakemake/locals.scm"
+    },
+    {
+      "name": "snakemake_iostr",
+      "camelcase": "SnakemakeIoStr",
+      "scope": "source.snakemake_iostr",
+      "injection-regex": "^snakemake_iostr$",
+      "path": "snakemake_iostr",
+      "highlights": "snakemake_iostr/queries/highlights.scm"
     }
   ],
   "metadata": {
