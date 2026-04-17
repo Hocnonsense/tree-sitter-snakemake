@@ -36,6 +36,7 @@ platforms = ["linux-64"]
 default = { solve-group = "default" }
 dev = { features = ["dev", "build"], solve-group = "default" }
 build = { features = ["build"], solve-group = "default" }
+nvim = { features = ["nvim"], no-default-feature = true }
 
 [tool.pixi.feature.build.dependencies]
 nodejs = ">=20"
@@ -98,3 +99,24 @@ depends-on = ["clean", "npm-install", "build", "tests"]
 
 [tool.isort]
 profile = "black"
+
+[tool.pixi.feature.nvim]
+channels = ["https://prefix.dev/github-releases"]
+
+[tool.pixi.feature.nvim.dependencies]
+neovim = "*"
+
+[tool.pixi.feature.nvim.activation.env]
+NVIM_APPNAME = "nvim"
+
+[tool.pixi.feature.nvim.tasks.nvim-build]
+cmd = "bash .nvim-local/bin/clean.sh && bash .nvim-local/bin/build.sh"
+default-environment = "nvim"
+
+[tool.pixi.feature.nvim.tasks.nvim-local]
+cmd = ".nvim-local/bin/nvim-local"
+default-environment = "nvim"
+
+[tool.pixi.feature.nvim.tasks.clean-nvim]
+depends-on = ["nvim-build", "nvim-local"]
+

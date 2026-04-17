@@ -1,0 +1,16 @@
+tools/
+runtime/
+xdg/data/
+xdg/state/
+xdg/cache/
+xdg/theme/
+
+!.gitignore
+!*.md
+!bin/
+!bin/*.sh
+!bin/nvim-local
+!xdg/
+!xdg/config/
+!xdg/config/nvim/
+!xdg/config/nvim/init.lua

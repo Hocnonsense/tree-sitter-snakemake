@@ -7,16 +7,6 @@
   "module"
 ] @keyword
 
-; Top level directives (eg. configfile, include)
-(module
-  (directive
-    name: _ @keyword))
-
-; Subordinate directives (eg. input, output)
-body: (_
-  (directive
-    name: _ @label))
-
 ; rule/module/checkpoint names
 (rule_definition
   name: (identifier) @type)
@@ -43,10 +33,6 @@ body: (_
   "use" @keyword
   "rule" @keyword
   "with" @keyword)
-
-; builtin variables
-((identifier) @variable.builtin
-  (#any-of? @variable.builtin "checkpoints" "config" "gather" "rules" "scatter" "workflow"))
 
 ; directive labels in block context (eg. within 'run:')
 ((identifier) @label

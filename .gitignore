@@ -75,6 +75,9 @@ snakemake_iostr/src/*
 !tests/test_highlight_injection.py
 !tests/update_highlights.js
 
+# example nvim settings
+!.nvim-local/
+
 # pixi environments
 .pixi/*
 !.pixi/config.toml
