@@ -4,6 +4,9 @@
 ; Format flag (:q etc.): highlight as builtin parameter
 (wildcard (flag) @variable.parameter.builtin)
 
+; Literal string text between wildcard expressions
+(text) @string
+
 ; Directive label references in interpolation wildcards
 ; e.g. {input}, {output.a}, {wildcards.sample}
 ((wildcard (name) @label)

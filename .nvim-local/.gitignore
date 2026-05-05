@@ -10,7 +10,8 @@ xdg/theme/
 !bin/
 !bin/*.sh
 !bin/nvim-local
-!xdg/
-!xdg/config/
-!xdg/config/nvim/
-!xdg/config/nvim/init.lua
+!bin/xdg/
+!bin/xdg/init.lua
+!bin/xdg/nvim-pack-lock.json
+!bin/xdg/colors/
+!bin/xdg/colors/*.lua
