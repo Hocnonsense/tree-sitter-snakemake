@@ -49,6 +49,7 @@ jobs:
           BUILD_SHA=$(git rev-parse --short HEAD)
           BUILD_FULL_SHA=$(git rev-parse HEAD)
           BUILD_SUBJECT=$(git log -1 --pretty=%s)
+          VERSION="$(sed -n 's/^version = "\(.*\)"$/\1/p' pyproject.toml | head -n 1)"
           git add -A
           git fetch origin main
 
@@ -58,20 +59,33 @@ jobs:
           COMMIT=$(git commit-tree "$TREE" -p "$PARENT" \
             -m "chore: sync generated grammar files from build@${BUILD_SHA}" \
             -m "Source-build-commit: ${BUILD_FULL_SHA}" \
-            -m "Source-build-subject: ${BUILD_SUBJECT}")
+            -m "Source-build-subject: ${BUILD_SUBJECT}" \
+            -m "Synced-version: ${VERSION}")
           git push origin "${COMMIT}:refs/heads/automation/sync-generated-main" --force
 
-          # Create PR if it doesn't exist yet
-          gh pr list --head automation/sync-generated-main --json number --jq '.[0].number' \
-            | grep -q . || \
-          gh pr create \
-            --base main \
-            --head automation/sync-generated-main \
-            --title "chore: sync generated grammar files" \
-            --body "Generated from the latest \`build\` branch commit.
+          cat > /tmp/sync-main-pr-body.md <<EOF
+          Generated from the latest \`build\` branch commit.
 
           Source build commit: \`${BUILD_FULL_SHA}\`
+          Source build subject: \`${BUILD_SUBJECT}\`
+          Synced version: \`${VERSION}\`
 
           This PR keeps \`main\` editor-ready by including generated tree-sitter files,
           final queries, and the main-branch \`.gitignore\`, while leaving build-only
-          infrastructure on \`build\`."
+          infrastructure on \`build\`.
+          EOF
+
+          PR_NUMBER="$(gh pr list \
+            --head automation/sync-generated-main \
+            --json number \
+            --jq '.[0].number')"
+
+          if [ -n "$PR_NUMBER" ]; then
+            gh pr edit "$PR_NUMBER" --body-file /tmp/sync-main-pr-body.md
+          else
+            gh pr create \
+              --base main \
+              --head automation/sync-generated-main \
+              --title "chore: sync generated grammar files" \
+              --body-file /tmp/sync-main-pr-body.md
+          fi
