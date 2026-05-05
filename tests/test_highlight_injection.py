@@ -11,7 +11,15 @@ unique colors to each capture type.  This code path is identical to what
 editors (Neovim, Helix) use, unlike `tree-sitter test` which has a known
 CLI bug with @variable captures from injected grammars.
 
-Run:  pytest tests/test_highlight_injection.py
+Test Useage:
+  pixi run test-html
+
+Or, after `pixi run npm-install && pixi run build`:
+  PATH="$PWD/.pixi/envs/dev/bin:$PATH" pytest tests/test_highlight_injection.py
+
+This test imports the generated Python binding from this repository, and also
+shells out to `tree-sitter highlight --html`. Running pytest outside Pixi must
+therefore use an environment where the tree-sitter CLI is on PATH.
 """
 
 import re
@@ -143,7 +151,7 @@ def test_rule_and_direvtives():
         *(("    ", ""), ("output", "label"), (': "{', "")),
         *(("sample", "variable"), ('}.tsv",\n', ""), ("# comment\n", "")),
         *(("        # comment\n", ""), ('        d = "d"\n', "")),
-        ("    shell:\n", ""),  # now illigal
+        ("    shell:\n", ""),
         ("#   ^^^^^ label\n", ""),
         *(('        "cat {', ""), ("input", "label"), (":", "")),
         ("q", "variable.parameter.builtin"),
@@ -184,4 +192,42 @@ def test_wildcards():
         *(('        "', ""), ("{{", "string.escape"), ("escaped", "")),
         *(("}}", "string.escape"), ('"\n', "")),
         *(('        f"{', ""), ("input", "label"), (':q}"\n', "")),
+    ]
+
+
+def test_use_rule_inheritance_highlights():
+    assert get_highlights("use rule a as b with:\n") == [
+        ("use", "keyword"),
+        (" ", ""),
+        ("rule", "keyword"),
+        (" ", ""),
+        ("a", "type"),
+        (" ", ""),
+        ("as", "keyword"),
+        (" ", ""),
+        ("b", "type"),
+        (" ", ""),
+        ("with", "keyword"),
+        (":\n", ""),
+    ]
+
+
+def test_use_rule_import_highlights():
+    assert get_highlights("use rule a from mod as b with:\n") == [
+        ("use", "keyword"),
+        (" ", ""),
+        ("rule", "keyword"),
+        (" ", ""),
+        ("a", "type"),
+        (" ", ""),
+        ("from", "keyword"),
+        (" ", ""),
+        ("mod", "type"),
+        (" ", ""),
+        ("as", "keyword"),
+        (" ", ""),
+        ("b", "type"),
+        (" ", ""),
+        ("with", "keyword"),
+        (":\n", ""),
     ]
