@@ -50,6 +50,10 @@ jobs:
           BUILD_FULL_SHA=$(git rev-parse HEAD)
           BUILD_SUBJECT=$(git log -1 --pretty=%s)
           VERSION="$(sed -n 's/^version = "\(.*\)"$/\1/p' pyproject.toml | head -n 1)"
+          IS_RELEASE_SYNC=false
+          if echo "$BUILD_SUBJECT" | grep -Eq '^chore(\(.+\))?: release '; then
+            IS_RELEASE_SYNC=true
+          fi
           git add -A
           git fetch origin main
 
@@ -60,32 +64,55 @@ jobs:
             -m "chore: sync generated grammar files from build@${BUILD_SHA}" \
             -m "Source-build-commit: ${BUILD_FULL_SHA}" \
             -m "Source-build-subject: ${BUILD_SUBJECT}" \
-            -m "Synced-version: ${VERSION}")
+            -m "Synced-version: ${VERSION}" \
+            -m "Release-sync: ${IS_RELEASE_SYNC}")
           git push origin "${COMMIT}:refs/heads/automation/sync-generated-main" --force
 
-          cat > /tmp/sync-main-pr-body.md <<EOF
-          Generated from the latest \`build\` branch commit.
+          printf '%s\n' \
+            "Generated from the latest \`build\` branch commit." \
+            "" \
+            "Source build commit: \`${BUILD_FULL_SHA}\`" \
+            "Source build subject: \`${BUILD_SUBJECT}\`" \
+            "Synced version: \`${VERSION}\`" \
+            "Release sync: \`${IS_RELEASE_SYNC}\`" \
+            "" \
+            "This PR keeps \`main\` editor-ready by including generated tree-sitter files," \
+            "final queries, and the main-branch \`.gitignore\`, while leaving build-only" \
+            "infrastructure on \`build\`." \
+            > /tmp/sync-main-pr-body.md
 
-          Source build commit: \`${BUILD_FULL_SHA}\`
-          Source build subject: \`${BUILD_SUBJECT}\`
-          Synced version: \`${VERSION}\`
-
-          This PR keeps \`main\` editor-ready by including generated tree-sitter files,
-          final queries, and the main-branch \`.gitignore\`, while leaving build-only
-          infrastructure on \`build\`.
-          EOF
+          if [ "$IS_RELEASE_SYNC" = true ]; then
+            printf '%s\n' \
+              "" \
+              "Merging this PR will publish \`v${VERSION}\` from \`main\` if that release does not already exist." \
+              >> /tmp/sync-main-pr-body.md
+          fi
 
           PR_NUMBER="$(gh pr list \
             --head automation/sync-generated-main \
             --json number \
             --jq '.[0].number')"
 
+          PR_TITLE="chore: sync generated grammar files from build@${BUILD_SHA}"
+          if [ "$IS_RELEASE_SYNC" = true ]; then
+            PR_TITLE="chore: sync generated grammar files for v${VERSION}"
+          fi
+
           if [ -n "$PR_NUMBER" ]; then
-            gh pr edit "$PR_NUMBER" --body-file /tmp/sync-main-pr-body.md
+            gh pr edit "$PR_NUMBER" \
+              --title "$PR_TITLE" \
+              --body-file /tmp/sync-main-pr-body.md
           else
-            gh pr create \
+            PR_URL="$(gh pr create \
               --base main \
               --head automation/sync-generated-main \
-              --title "chore: sync generated grammar files" \
-              --body-file /tmp/sync-main-pr-body.md
+              --title "$PR_TITLE" \
+              --body-file /tmp/sync-main-pr-body.md)"
+            PR_NUMBER="${PR_URL##*/}"
+          fi
+
+          if [ "$IS_RELEASE_SYNC" = true ]; then
+            gh pr edit "$PR_NUMBER" --add-label release-sync
+          else
+            gh pr edit "$PR_NUMBER" --remove-label release-sync || true
           fi
