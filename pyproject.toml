@@ -87,7 +87,7 @@ cmd = "(cd snakemake_iostr && tree-sitter test)"
 default-environment = "dev"
 
 [tool.pixi.feature.dev.tasks.test-html]
-cmd = "pytest tests/test_highlight_injection.py"
+cmd = "pytest build_tools/tests/test_highlight_injection.py"
 default-environment = "dev"
 
 [tool.pixi.feature.dev.tasks.tests]

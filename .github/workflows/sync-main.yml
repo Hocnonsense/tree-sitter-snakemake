@@ -31,6 +31,9 @@ jobs:
           rm -rf \
             build_tools \
             .nvim-local \
+            pixi.lock \
+            release-please-config.json \
+            .release-please-manifest.json \
             .github
 
       - name: Push to PR branch and open or update PR

@@ -11,11 +11,11 @@ unique colors to each capture type.  This code path is identical to what
 editors (Neovim, Helix) use, unlike `tree-sitter test` which has a known
 CLI bug with @variable captures from injected grammars.
 
-Test Useage:
+Test Usage:
   pixi run test-html
 
 Or, after `pixi run npm-install && pixi run build`:
-  PATH="$PWD/.pixi/envs/dev/bin:$PATH" pytest tests/test_highlight_injection.py
+  PATH="$PWD/.pixi/envs/dev/bin:$PATH" pytest build_tools/tests/test_highlight_injection.py
 
 This test imports the generated Python binding from this repository, and also
 shells out to `tree-sitter highlight --html`. Running pytest outside Pixi must

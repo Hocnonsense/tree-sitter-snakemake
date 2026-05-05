@@ -70,6 +70,8 @@ binding.gyp
 !build_tools/queries/
 !build_tools/queries/update_highlights.js
 !build_tools/queries/highlights.template.scm
+!build_tools/tests/
+!build_tools/tests/test_highlight_injection.py
 !directives.json
 !highlights.json
 
@@ -81,11 +83,6 @@ snakemake_iostr/src/*
 !snakemake_iostr/test/
 !snakemake_iostr/test/corpus/
 !snakemake_iostr/test/corpus/wildcards.txt
-
-# highlight injection test (uses tree-sitter highlight --html, not tree-sitter test)
-!tests/test_highlight_theme.json
-!tests/test_highlight_injection.smk
-!tests/test_highlight_injection.py
 
 # example nvim settings
 !.nvim-local/

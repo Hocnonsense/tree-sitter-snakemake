@@ -14,7 +14,7 @@ of [tree-sitter-python](https://github.com/tree-sitter/tree-sitter-python).
 [pixi](https://pixi.sh) is used to manage the development environment.
 
 This `build` branch is the maintenance branch used to generate the compact `main` branch.
-It keeps build-only inputs and tools under `build_tools/`, plus the local Neovim example under `.nvim-local/` and CI workflows.
+It keeps build-only inputs and tools under `build_tools/`, plus the local Neovim example, CI workflows, and so on.
 On every push to `build`, GitHub Actions regenerates the tree-sitter outputs, removes the "build-only" section, and opens or updates a PR against `main`.
 
 Run `pixi run build` to generate files (`src/parser.c`, `bindings/{python,rust,go}/*`, `Cargo.toml`, etc.) for binding to other languages.
