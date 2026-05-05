@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tree-sitter-snakemake"
-description = "snakemake grammar for tree-sitter, based on tree-sitter-python"
+description = "Snakemake grammar for tree-sitter, based on tree-sitter-python"
 version = "2.1.0"
 keywords = ["incremental", "parsing", "tree-sitter", "snakemake"]
 classifiers = [
@@ -57,7 +57,7 @@ cmd = "git clean -fdx --exclude=node_modules --exclude='.*' --exclude='*.md' --e
 default-environment = "build"
 
 [tool.pixi.feature.build.tasks.build]
-cmd = "tree-sitter generate && tree-sitter init && node build_tools/queries/update_highlights.js && (cd snakemake_iostr && tree-sitter generate)"
+cmd = "tree-sitter generate && tree-sitter init && node build_tools/queries/update_highlights.cjs && (cd snakemake_iostr && tree-sitter generate)"
 depends-on = ["sync-scanner"]
 default-environment = "build"
 

@@ -4,7 +4,7 @@
     {
       "name": "snakemake",
       "camelcase": "Snakemake",
-      "title": "snakemake",
+      "title": "Snakemake",
       "scope": "source.snakemake",
       "file-types": [
         "Snakefile",
@@ -28,7 +28,7 @@
   "metadata": {
     "version": "2.1.0",
     "license": "MIT",
-    "description": "snakemake grammar for tree-sitter, based on tree-sitter-python",
+    "description": "Snakemake grammar for tree-sitter, based on tree-sitter-python",
     "authors": [
       {
         "name": "Oliver Thomas"

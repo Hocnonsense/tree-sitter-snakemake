@@ -38,7 +38,7 @@ Directive keywords and highlight keyword lists for [Snakemake](https://snakemake
   Read directly by `grammar.js`.
 - `highlights.json`: source of truth for highlight keyword lists (builtin objects, job parameter objects, helper functions, classes).
   Used to generate `queries/snakemake/highlights.scm` from `build_tools/queries/highlights.template.scm`.
-- `build_tools/queries/update_highlights.js`: combines the hand-written query template with the directive and highlight JSON data.
+- `build_tools/queries/update_highlights.cjs`: combines the hand-written query template with the directive and highlight JSON data.
   It writes and checks the editor-ready `queries/snakemake/highlights.scm`.
 
 When Snakemake adds, removes, or renames directives, update these JSON data files to reflect the changes.

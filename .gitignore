@@ -68,7 +68,7 @@ binding.gyp
 !build_tools/scanner/scanner.c.diff
 !build_tools/scanner/*.sh
 !build_tools/queries/
-!build_tools/queries/update_highlights.js
+!build_tools/queries/update_highlights.cjs
 !build_tools/queries/highlights.template.scm
 !build_tools/tests/
 !build_tools/tests/test_highlight_injection.py
