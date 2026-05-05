@@ -1,0 +1,84 @@
+{
+  "params": [
+    "configfile",
+    "envvars",
+    "include",
+    "workdir",
+    "pepfile",
+    "pepschema",
+    "report",
+    "inputflags",
+    "outputflags",
+    "localrules",
+    "ruleorder",
+    "wildcard_constraints",
+    "scattergather",
+    "pathvars",
+    "resource_scopes",
+    "container",
+    "singularity",
+    "containerized",
+    "conda",
+    "storage"
+  ],
+  "python": [
+    "onstart",
+    "onsuccess",
+    "onerror"
+  ],
+  "statements": {
+    "rule": {
+      "params": [
+        "name",
+        "default_target",
+        "input",
+        "output",
+        "log",
+        "benchmark",
+        "pathvars",
+        "wildcard_constraints",
+        "cache",
+        "priority",
+        "retries",
+        "group",
+        "localrule",
+        "handover",
+        "shadow",
+        "conda",
+        "container",
+        "singularity",
+        "containerized",
+        "envmodules",
+        "threads",
+        "resources",
+        "params",
+        "message"
+      ],
+      "run": {
+        "python": [
+          "run"
+        ],
+        "shell": [
+          "shell",
+          "wrapper",
+          "cwl",
+          "template_engine",
+          "script",
+          "notebook"
+        ]
+      }
+    },
+    "module": {
+      "params": [
+        "name",
+        "snakefile",
+        "config",
+        "skip_validation",
+        "prefix",
+        "replace_prefix",
+        "meta_wrapper",
+        "pathvars"
+      ]
+    }
+  }
+}

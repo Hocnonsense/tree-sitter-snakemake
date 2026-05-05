@@ -1,13 +1,13 @@
 [package]
 name = "tree-sitter-snakemake"
-description = "snakemake grammar for tree-sitter, based on tree-sitter-python"
+description = "Snakemake grammar for tree-sitter, based on tree-sitter-python"
 version = "2.1.0"
 authors = ["Oliver Thomas"]
 license = "MIT"
 readme = "README.md"
 keywords = ["incremental", "parsing", "tree-sitter", "snakemake"]
 categories = ["parser-implementations", "parsing", "text-editors"]
-repository = "https://github.com/tree-sitter/tree-sitter-snakemake"
+repository = "https://github.com/osthomas/tree-sitter-snakemake"
 edition = "2021"
 autoexamples = false
 
@@ -18,7 +18,7 @@ include = [
   "queries/*",
   "src/*",
   "tree-sitter.json",
-  "LICENSE",
+  "/LICENSE",
 ]
 
 [lib]
@@ -31,4 +31,4 @@ tree-sitter-language = "0.1"
 cc = "1.2"
 
 [dev-dependencies]
-tree-sitter = "0.25.8"
+tree-sitter = "0.26.8"

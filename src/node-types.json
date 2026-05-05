@@ -1545,6 +1545,10 @@
             "named": false
           },
           {
+            "type": "containerized",
+            "named": false
+          },
+          {
             "type": "cwl",
             "named": false
           },
@@ -1574,6 +1578,10 @@
           },
           {
             "type": "input",
+            "named": false
+          },
+          {
+            "type": "inputflags",
             "named": false
           },
           {
@@ -1621,7 +1629,15 @@
             "named": false
           },
           {
+            "type": "outputflags",
+            "named": false
+          },
+          {
             "type": "params",
+            "named": false
+          },
+          {
+            "type": "pathvars",
             "named": false
           },
           {
@@ -1638,6 +1654,18 @@
           },
           {
             "type": "priority",
+            "named": false
+          },
+          {
+            "type": "replace_prefix",
+            "named": false
+          },
+          {
+            "type": "report",
+            "named": false
+          },
+          {
+            "type": "resource_scopes",
             "named": false
           },
           {
@@ -1685,15 +1713,15 @@
             "named": false
           },
           {
+            "type": "storage",
+            "named": false
+          },
+          {
             "type": "template_engine",
             "named": false
           },
           {
             "type": "threads",
-            "named": false
-          },
-          {
-            "type": "version",
             "named": false
           },
           {
@@ -1707,6 +1735,16 @@
           {
             "type": "wrapper",
             "named": false
+          }
+        ]
+      },
+      "storage_name": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
           }
         ]
       }
@@ -1922,11 +1960,6 @@
         }
       ]
     }
-  },
-  {
-    "type": "flag",
-    "named": true,
-    "fields": {}
   },
   {
     "type": "for_in_clause",
@@ -3353,10 +3386,6 @@
         {
           "type": "string_start",
           "named": true
-        },
-        {
-          "type": "wildcard",
-          "named": true
         }
       ]
     }
@@ -3793,37 +3822,6 @@
     }
   },
   {
-    "type": "wildcard",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "attribute",
-          "named": true
-        },
-        {
-          "type": "constraint",
-          "named": true
-        },
-        {
-          "type": "flag",
-          "named": true
-        },
-        {
-          "type": "identifier",
-          "named": true
-        },
-        {
-          "type": "subscript",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "wildcard_import",
     "named": true,
     "fields": {}
@@ -4150,11 +4148,11 @@
     "named": false
   },
   {
-    "type": "constraint",
-    "named": true
+    "type": "container",
+    "named": false
   },
   {
-    "type": "container",
+    "type": "containerized",
     "named": false
   },
   {
@@ -4274,6 +4272,10 @@
     "named": false
   },
   {
+    "type": "inputflags",
+    "named": false
+  },
+  {
     "type": "integer",
     "named": true
   },
@@ -4359,11 +4361,19 @@
     "named": false
   },
   {
+    "type": "outputflags",
+    "named": false
+  },
+  {
     "type": "params",
     "named": false
   },
   {
     "type": "pass",
+    "named": false
+  },
+  {
+    "type": "pathvars",
     "named": false
   },
   {
@@ -4387,11 +4397,19 @@
     "named": false
   },
   {
-    "type": "q",
+    "type": "raise",
     "named": false
   },
   {
-    "type": "raise",
+    "type": "replace_prefix",
+    "named": false
+  },
+  {
+    "type": "report",
+    "named": false
+  },
+  {
+    "type": "resource_scopes",
     "named": false
   },
   {
@@ -4447,6 +4465,10 @@
     "named": false
   },
   {
+    "type": "storage",
+    "named": false
+  },
+  {
     "type": "string_end",
     "named": true
   },
@@ -4480,10 +4502,6 @@
   },
   {
     "type": "use",
-    "named": false
-  },
-  {
-    "type": "version",
     "named": false
   },
   {

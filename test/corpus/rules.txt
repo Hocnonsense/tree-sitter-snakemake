@@ -3,20 +3,20 @@ Directive parameters on one line
 ===============================================================================
 
 rule:
-  input: 1, 2, "a"
   "docstring"
+  input: 1, 2, "a"
 
 -------------------------------------------------------------------------------
 
 (module
   (rule_definition
     (rule_body
+      (string (string_start) (string_content) (string_end))
       (directive
         (directive_parameters
           (integer)
           (integer)
-          (string (string_start) (string_content) (string_end))))
-      (string (string_start) (string_content) (string_end)))))
+          (string (string_start) (string_content) (string_end)))))))
 
 
 ===============================================================================
@@ -24,22 +24,22 @@ Directive parameters indented
 ===============================================================================
 
 rule:
+  "docstring"
   input:
     1, 2,
     "a"
-  "docstring"
 
 -------------------------------------------------------------------------------
 
 (module
   (rule_definition
     (rule_body
+      (string (string_start) (string_content) (string_end))
       (directive
         (directive_parameters
           (integer)
           (integer)
-          (string (string_start) (string_content) (string_end))))
-      (string (string_start) (string_content) (string_end)))))
+          (string (string_start) (string_content) (string_end)))))))
 
 
 ===============================================================================
@@ -47,10 +47,10 @@ Directive parameters with continued indented line
 ===============================================================================
 
 rule:
+  "docstring"
   input: 1, 2,
     3,
     "a"
-  "docstring"
   output: 1, 2,,  # no trailing comma allowed with this form
     3
 
@@ -59,13 +59,13 @@ rule:
 (module
   (rule_definition
     (rule_body
+      (string (string_start) (string_content) (string_end))
       (directive
         (directive_parameters
           (integer)
           (integer)
           (integer)
           (string (string_start) (string_content) (string_end))))
-    (string (string_start) (string_content) (string_end))
       (directive
         (directive_parameters
           (integer) (integer) (ERROR) (comment) (integer)))
@@ -77,8 +77,8 @@ Directive parameters with trailing comma
 ===============================================================================
 
 rule:
-  input: 1, "a",
   "docstring"
+  input: 1, "a",
   input: 1,
     2,
   input:
@@ -92,11 +92,11 @@ rule:
 (module
   (rule_definition
     (rule_body
+      (string (string_start) (string_content) (string_end))
       (directive
        (directive_parameters
         (integer)
         (string (string_start) (string_content) (string_end))))
-    (string (string_start) (string_content) (string_end))
       (directive
        (directive_parameters
         (integer)
@@ -161,26 +161,19 @@ rule all:
   conda: a
   container: a
   singularity: a
-  run:
-    if a:
-      pass
-  shell: a
-  script: a
-  notebook: a
   shadow: a
   priority: 1
   retries: 2
-  cwl: a
   localrule: False
   handover: True
-  wrapper: a
   wildcard_constraints:
     a = "x"
-  template_engine:
-    "jinja2"
   default_target: True
   envmodules: "a"
   group: "a"
+  run:
+    if a:
+      pass
 
 -------------------------------------------------------------------------------
 
@@ -230,21 +223,6 @@ rule all:
         arguments: (directive_parameters
           (identifier)))
       (directive
-        body: (block
-          (if_statement
-            condition: (identifier)
-            consequence: (block
-              (pass_statement)))))
-      (directive
-        arguments: (directive_parameters
-          (identifier)))
-      (directive
-        arguments: (directive_parameters
-          (identifier)))
-      (directive
-        arguments: (directive_parameters
-          (identifier)))
-      (directive
         arguments: (directive_parameters
           (identifier)))
       (directive
@@ -253,9 +231,6 @@ rule all:
       (directive
         arguments: (directive_parameters
           (integer)))
-      (directive
-        arguments: (directive_parameters
-          (identifier)))
       (directive
         arguments: (directive_parameters
           (false)))
@@ -264,15 +239,9 @@ rule all:
           (true)))
       (directive
         arguments: (directive_parameters
-          (identifier)))
-      (directive
-        arguments: (directive_parameters
           (keyword_argument
             name: (identifier)
             value: (string (string_start) (string_content) (string_end)))))
-      (directive
-        arguments: (directive_parameters
-          (string (string_start) (string_content) (string_end))))
       (directive
         arguments: (directive_parameters
           (true)))
@@ -282,6 +251,12 @@ rule all:
       (directive
         arguments: (directive_parameters
           (string (string_start) (string_content) (string_end))))
+      (directive
+        body: (block
+          (if_statement
+            condition: (identifier)
+            consequence: (block
+              (pass_statement)))))
     )
   )
 )
@@ -310,42 +285,43 @@ Rule with comments
 ===============================================================================
 
 rule:
-# comment
-  input: 1, 2, "a"
-  # comment
   "docstring"
-  output: #comment
-    # comment
+# comment 1
+  input: 1, 2, "a"
+  # comment 2
+  output: #comment 3
+    # comment 4
     1
   params:
-# comment
-  #comment
-    # comment
+# comment 5
+  #comment 6
+    # comment 7
     1
   output: "a", "b",
-# comment
+# comment 8
     9
 
 -------------------------------------------------------------------------------
 
 (module
   (rule_definition
-    (comment)
     (rule_body
+      (string (string_start) (string_content) (string_end))
+      (comment)
       (directive
         (directive_parameters
           (integer)
           (integer)
           (string (string_start) (string_content) (string_end))))
       (comment)
-      (string (string_start) (string_content) (string_end))
       (directive
-        (comment) (comment)
+        (comment)
         (directive_parameters
+          (comment)
           (integer)))
       (directive
-        (comment) (comment) (comment)
         (directive_parameters
+          (comment) (comment) (comment)
           (integer)))
       (directive
         (directive_parameters

@@ -6,26 +6,15 @@ rule ruleA:
     input: a = "b",
         b = "c",
         c = "{sample}.txt",
-        #     ^^^^^^ variable
     output: "{sample}.tsv",
-#             ^^^^^^ variable
 # comment
         # comment
         d = "d"
     shell:
 #   ^^^^^ label
         "cat {input:q} > {output.d:q}"
-#             ^^^^^ label
-#                         ^^^^^^ label
-#                   ^ variable.parameter.builtin
-#                                  ^ variable.parameter.builtin
         f"{input:d}"
-#          ^^^^^ !label
         "{input}"
-#         ^^^^^ label
-    run:
-        threads + 5
-#       ^^^^^^^ label
 
 threads = 3
 #^^^^^^ !label
@@ -50,3 +39,31 @@ checkpoint X:
 #    ^^^^^ label
     output: 2
 #   ^^^^^ label
+
+rule pyrefs:
+#^^^^ keyword
+#    ^^^^^^ type
+    run:
+        rules.foo
+#       ^^^^^ variable.builtin
+#             ^^^ variable
+        checkpoints.bar.get
+#       ^^^^^^^^^^^ variable.builtin
+#                   ^^^ variable
+#                       ^^^ function.builtin
+        output.foo
+#       ^^^^^^ label
+#              ^^^ variable
+        input.bar
+#       ^^^^^ label
+#             ^^^ variable
+        Path
+#       ^^^^ type
+        WorkflowError
+#       ^^^^^^^^^^^^^ type
+        snakemake
+#       ^^^^^^^^^ variable.builtin
+        access
+#       ^^^^^^ variable.builtin
+        expand("x")
+#       ^^^^^^ function.builtin

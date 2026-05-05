@@ -1,4 +1,4 @@
-module github.com/tree-sitter/tree-sitter-snakemake
+module github.com/osthomas/tree-sitter-snakemake
 
 go 1.22
 
