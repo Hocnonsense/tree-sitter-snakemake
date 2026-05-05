@@ -1,6 +1,6 @@
 python_scanner="node_modules/tree-sitter-python/src/scanner.c"
 snakemake_scanner="src/scanner.c"
-patch_file="$snakemake_scanner.diff"
+patch_file="build_tools/scanner/scanner.c.diff"
 
 if [ -f "$python_scanner" ]; then
     if [ -f "$snakemake_scanner" ]; then

@@ -46,18 +46,18 @@ cmd = "npm ci"
 default-environment = "build"
 
 [tool.pixi.feature.build.tasks.sync-scanner]
-cmd = "bash tests/sync-scanner.sh"
+cmd = "bash build_tools/scanner/sync-scanner.sh"
 default-environment = "build"
 
 [tool.pixi.tasks.assert-sync-scanner]
-cmd = "bash tests/assert-sync-scanner.sh"
+cmd = "bash build_tools/scanner/assert-sync-scanner.sh"
 
 [tool.pixi.feature.build.tasks.clean]
-cmd = "git clean -fdx --exclude=node_modules --exclude='.*' --exclude='*.md' --exclude=pixi.lock && rm -rf build dist"
+cmd = "git clean -fdx --exclude=node_modules --exclude='.*' --exclude='*.md' --exclude=pixi.lock && rm -rf dist"
 default-environment = "build"
 
 [tool.pixi.feature.build.tasks.build]
-cmd = "tree-sitter generate && tree-sitter init && node tests/update_highlights.js && (cd snakemake_iostr && tree-sitter generate)"
+cmd = "tree-sitter generate && tree-sitter init && node build_tools/queries/update_highlights.js && (cd snakemake_iostr && tree-sitter generate)"
 depends-on = ["sync-scanner"]
 default-environment = "build"
 

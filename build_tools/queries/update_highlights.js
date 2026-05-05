@@ -3,10 +3,10 @@
 const fs = require("fs")
 const path = require("path")
 
-const root = path.resolve(__dirname, "..")
+const root = path.resolve(__dirname, "..", "..")
 const dataPath = path.join(root, "highlights.json")
 const directivesPath = path.join(root, "directives.json")
-const templatePath = path.join(root, "queries_template", "highlights.scm")
+const templatePath = path.join(root, "build_tools", "queries", "highlights.template.scm")
 const outputPath = path.join(root, "queries", "snakemake", "highlights.scm")
 
 const data = JSON.parse(fs.readFileSync(dataPath, "utf8"))
@@ -28,7 +28,7 @@ function renderChoices(items, itemIndent = "      ", closeIndent = "    ") {
     return `[\n${unique.map(item => `${itemIndent}"${item}"`).join("\n")}\n${closeIndent}]`
 }
 
-// The hand-written template stays in queries_template/. This script appends
+// The hand-written template stays in `build_tools/queries/*.template.*`. This script appends
 // data-driven query fragments so queries/snakemake/highlights.scm can remain
 // the checked-in, editor-ready query file.
 const generated = `
@@ -60,9 +60,9 @@ const generated = `
 (rule_body
   (directive
     name: ${renderChoices([
-      ...directives.statements.rule.run.python,
-      ...directives.statements.rule.run.shell,
-    ], "      ", "    ")} @label))
+    ...directives.statements.rule.run.python,
+    ...directives.statements.rule.run.shell,
+], "      ", "    ")} @label))
 
 ; Module directives
 (module_body
@@ -114,7 +114,7 @@ const updated = `${template}\n\n${generated}\n`
 
 if (process.argv.includes("--check")) {
     if (updated !== current) {
-        process.stderr.write("highlights.scm is out of date. Run: node tests/update_highlights.js\n")
+        process.stderr.write("highlights.scm is out of date. Run: node build_tools/queries/update_highlights.js\n")
         process.exit(1)
     }
     process.exit(0)

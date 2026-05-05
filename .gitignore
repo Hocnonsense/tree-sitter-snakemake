@@ -49,25 +49,29 @@ zig-out/
 *.tgz
 *.zip
 
+# build-branch-only
 # github ci tests
 !.github/
 !.github/workflows/
 !.github/workflows/**.yml
-!.github/main.gitignore
 !release-please-config.json
 !.release-please-manifest.json
 
 # generated files
 src/*
 !src/scanner.c
-!src/scanner.c.diff
 bindings/*
 binding.gyp
 
+!build_tools/
+!build_tools/scanner/
+!build_tools/scanner/scanner.c.diff
+!build_tools/scanner/*.sh
+!build_tools/queries/
+!build_tools/queries/update_highlights.js
+!build_tools/queries/highlights.template.scm
 !directives.json
 !highlights.json
-!queries_template/
-!queries_template/highlights.scm
 
 # sub-grammar source files for snakemake string (wildcards and pathvars)
 snakemake_iostr/src/*
@@ -82,7 +86,6 @@ snakemake_iostr/src/*
 !tests/test_highlight_theme.json
 !tests/test_highlight_injection.smk
 !tests/test_highlight_injection.py
-!tests/update_highlights.js
 
 # example nvim settings
 !.nvim-local/

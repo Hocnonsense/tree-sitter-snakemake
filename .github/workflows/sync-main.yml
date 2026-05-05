@@ -27,8 +27,11 @@ jobs:
 
       - name: Prepare main branch content
         run: |
-          cp .github/main.gitignore .gitignore
-          rm -rf .nvim-local queries_template .github/workflows
+          sed -i '/^# build-branch-only$/,$d' .gitignore
+          rm -rf \
+            build_tools \
+            .nvim-local \
+            .github
 
       - name: Push to PR branch and open or update PR
         env:

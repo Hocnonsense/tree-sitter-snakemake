@@ -20,7 +20,7 @@ mkdir -p "$RUNTIME_DIR/colors"
 mkdir -p "$CONFIG_DIR"
 mkdir -p "$PARSER_DIR"
 
-node tests/update_highlights.js
+node build_tools/queries/update_highlights.js
 "$ROOT/node_modules/.bin/tree-sitter" generate
 (cd "$ROOT/snakemake_iostr" && "$ROOT/node_modules/.bin/tree-sitter" generate)
 

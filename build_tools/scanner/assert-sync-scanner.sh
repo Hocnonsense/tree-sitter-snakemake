@@ -12,7 +12,7 @@ fi
 # Ensure src/scanner.c is in sync with tree-sitter-python,
 # except for the expected modifications in the diff.
 python_scanner="node_modules/tree-sitter-python/src/scanner.c"
-patch_file="$snakemake_scanner.diff"
+patch_file="build_tools/scanner/scanner.c.diff"
 
 tmp="$patch_file.check.$PPID"
 diff "$python_scanner" "$snakemake_scanner" > "$tmp" || true
