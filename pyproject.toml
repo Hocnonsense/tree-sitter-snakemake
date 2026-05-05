@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tree-sitter-snakemake"
-description = "snakemake grammar for tree-sitter, based on tree-sitter-python"
+description = "Snakemake grammar for tree-sitter, based on tree-sitter-python"
 version = "2.1.0"
 keywords = ["incremental", "parsing", "tree-sitter", "snakemake"]
 classifiers = [
@@ -19,8 +19,7 @@ license = "MIT"
 readme = "README.md"
 
 [project.urls]
-Homepage = "https://github.com/snakemake/tree-sitter-snakemake"
-Repository = "https://github.com/Hocnonsense/tree-sitter-snakemake"
+Homepage = "https://github.com/osthomas/tree-sitter-snakemake"
 
 [tool.cibuildwheel]
 build = "cp3{11,12,13}-*"
@@ -47,18 +46,18 @@ cmd = "npm ci"
 default-environment = "build"
 
 [tool.pixi.feature.build.tasks.sync-scanner]
-cmd = "bash tests/sync-scanner.sh"
+cmd = "bash build_tools/scanner/sync-scanner.sh"
 default-environment = "build"
 
 [tool.pixi.tasks.assert-sync-scanner]
-cmd = "bash tests/assert-sync-scanner.sh"
+cmd = "bash build_tools/scanner/assert-sync-scanner.sh"
 
 [tool.pixi.feature.build.tasks.clean]
-cmd = "git clean -fdx --exclude=node_modules --exclude='.*' --exclude='*.md' --exclude=pixi.lock && rm -rf build dist"
+cmd = "git clean -fdx --exclude=node_modules --exclude='.*' --exclude='*.md' --exclude=pixi.lock && rm -rf dist"
 default-environment = "build"
 
 [tool.pixi.feature.build.tasks.build]
-cmd = "tree-sitter generate && tree-sitter init && node tests/update_highlights.js && (cd snakemake_iostr && tree-sitter generate)"
+cmd = "tree-sitter generate && tree-sitter init && node build_tools/queries/update_highlights.cjs && (cd snakemake_iostr && tree-sitter generate)"
 depends-on = ["sync-scanner"]
 default-environment = "build"
 
@@ -88,7 +87,7 @@ cmd = "(cd snakemake_iostr && tree-sitter test)"
 default-environment = "dev"
 
 [tool.pixi.feature.dev.tasks.test-html]
-cmd = "pytest tests/test_highlight_injection.py"
+cmd = "pytest build_tools/tests/test_highlight_injection.py"
 default-environment = "dev"
 
 [tool.pixi.feature.dev.tasks.tests]
@@ -119,4 +118,3 @@ default-environment = "nvim"
 
 [tool.pixi.feature.nvim.tasks.clean-nvim]
 depends-on = ["nvim-build", "nvim-local"]
-
