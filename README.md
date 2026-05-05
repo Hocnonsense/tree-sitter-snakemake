@@ -1,6 +1,6 @@
 # tree-sitter-snakemake
 
-[![CI](https://github.com/Hocnonsense/tree-sitter-snakemake/workflows/CI/badge.svg)](https://github.com/Hocnonsense/tree-sitter-snakemake/actions)
+[![CI](https://github.com/osthomas/tree-sitter-snakemake/workflows/CI/badge.svg)](https://github.com/osthomas/tree-sitter-snakemake/actions)
 
 A tree-sitter grammar for
 [Snakemake](https://snakemake.readthedocs.io/en/stable/),
@@ -33,7 +33,9 @@ Directive keywords and highlight keyword lists for [Snakemake](https://snakemake
 - `directives.json`: source of truth for grammar-level directive names and statement groupings.
   Read directly by `grammar.js`.
 - `highlights.json`: source of truth for highlight keyword lists (builtin objects, job parameter objects, helper functions, classes).
-  Used to generate `queries/snakemake/highlights.scm` from `queries/snakemake/highlights.template.scm`.
+  Used to generate `queries/snakemake/highlights.scm` from `queries_template/highlights.scm`.
+- `tests/update_highlights.js`: combines the hand-written query template with the directive and highlight JSON data.
+  It writes and checks the editor-ready `queries/snakemake/highlights.scm`.
 
 When Snakemake adds, removes, or renames directives, update these JSON data files to reflect the changes.
 Run `pixi run build` or `pixi run clean-tests` to apply changes.

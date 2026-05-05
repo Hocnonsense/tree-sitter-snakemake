@@ -6,7 +6,7 @@ const path = require("path")
 const root = path.resolve(__dirname, "..")
 const dataPath = path.join(root, "highlights.json")
 const directivesPath = path.join(root, "directives.json")
-const templatePath = path.join(root, "queries", "snakemake", "highlights.template.scm")
+const templatePath = path.join(root, "queries_template", "highlights.scm")
 const outputPath = path.join(root, "queries", "snakemake", "highlights.scm")
 
 const data = JSON.parse(fs.readFileSync(dataPath, "utf8"))
@@ -14,16 +14,23 @@ const directives = JSON.parse(fs.readFileSync(directivesPath, "utf8"))
 const template = fs.readFileSync(templatePath, "utf8").trimEnd()
 const current = fs.existsSync(outputPath) ? fs.readFileSync(outputPath, "utf8") : ""
 
+// Render a tree-sitter predicate that matches any generated keyword in a
+// stable order. Keeping the sort here makes highlight updates reviewable.
 function renderAnyOf(capture, items) {
     const unique = [...new Set(items)].sort()
     return `(#any-of? ${capture}\n${unique.map(item => `  "${item}"`).join("\n")})`
 }
 
+// Render bracketed string alternatives for directive names in the generated
+// query patterns. The indentation arguments match each surrounding query shape.
 function renderChoices(items, itemIndent = "      ", closeIndent = "    ") {
     const unique = [...new Set(items)].sort()
     return `[\n${unique.map(item => `${itemIndent}"${item}"`).join("\n")}\n${closeIndent}]`
 }
 
+// The hand-written template stays in queries_template/. This script appends
+// data-driven query fragments so queries/snakemake/highlights.scm can remain
+// the checked-in, editor-ready query file.
 const generated = `
 ; ---------------------------------------------------------------------------
 ; GENERATED FROM highlights.json. Do not edit this section by hand.

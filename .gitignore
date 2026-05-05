@@ -53,6 +53,7 @@ zig-out/
 !.github/
 !.github/workflows/
 !.github/workflows/**.yml
+!.github/main.gitignore
 !release-please-config.json
 !.release-please-manifest.json
 
@@ -65,7 +66,8 @@ binding.gyp
 
 !directives.json
 !highlights.json
-!queries/snakemake/highlights.template.scm
+!queries_template/
+!queries_template/highlights.scm
 
 # sub-grammar source files for snakemake string (wildcards and pathvars)
 snakemake_iostr/src/*

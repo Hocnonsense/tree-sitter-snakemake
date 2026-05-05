@@ -1,0 +1,44 @@
+name: Sync generated main
+
+on:
+  push:
+    branches:
+      - build
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-main:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout build branch
+        uses: actions/checkout@v4
+        with:
+          ref: build
+
+      - uses: prefix-dev/setup-pixi@v0.8.5
+        with:
+          environments: build dev
+
+      - name: Generate editor-ready files
+        run: |
+          pixi run npm-install
+          pixi run build
+          cp .github/main.gitignore .gitignore
+
+      - name: Open pull request to main
+        uses: peter-evans/create-pull-request@v6
+        with:
+          branch: automation/sync-generated-main
+          base: main
+          title: "chore: sync generated grammar files"
+          commit-message: "chore: sync generated grammar files"
+          body: |
+            Generated from the latest `build` branch commit.
+
+            This PR keeps `main` editor-ready by including generated tree-sitter files,
+            final queries, and the main-branch `.gitignore`, while leaving build-only
+            infrastructure on `build`.
+          delete-branch: true

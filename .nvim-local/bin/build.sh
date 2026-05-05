@@ -17,14 +17,6 @@ mkdir -p "$RUNTIME_DIR/queries/snakemake"
 mkdir -p "$RUNTIME_DIR/queries/snakemake_iostr"
 mkdir -p "$PARSER_DIR"
 
-if command -v git >/dev/null 2>&1; then
-  if ! "$LOCAL_ROOT/bin/install-theme.sh"; then
-    echo "Warning: failed to install/update tokyonight. Neovim will fall back to the default colorscheme." >&2
-  fi
-else
-  echo "Warning: git not found; skipping tokyonight installation." >&2
-fi
-
 node tests/update_highlights.js
 "$ROOT/node_modules/.bin/tree-sitter" generate
 (cd "$ROOT/snakemake_iostr" && "$ROOT/node_modules/.bin/tree-sitter" generate)
