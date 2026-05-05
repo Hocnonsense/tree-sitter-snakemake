@@ -30,17 +30,33 @@ jobs:
           cp .github/main.gitignore .gitignore
           rm -rf .nvim-local queries_template .github/workflows
 
-      - name: Open or update pull request to main
-        uses: peter-evans/create-pull-request@v6
-        with:
-          branch: automation/sync-generated-main
-          base: main
-          title: "chore: sync generated grammar files"
-          commit-message: "chore: sync generated grammar files"
-          body: |
-            Generated from the latest `build` branch commit.
+      - name: Push to PR branch and open or update PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            This PR keeps `main` editor-ready by including generated tree-sitter files,
-            final queries, and the main-branch `.gitignore`, while leaving build-only
-            infrastructure on `build`.
-          delete-branch: true
+          BUILD_SHA=$(git rev-parse --short HEAD)
+          git add -A
+          git fetch origin main
+
+          # Create a commit on top of origin/main without modifying the build branch
+          TREE=$(git write-tree)
+          PARENT=$(git rev-parse origin/main)
+          COMMIT=$(git commit-tree "$TREE" -p "$PARENT" \
+            -m "chore: sync generated grammar files from build@${BUILD_SHA}")
+          git push origin "${COMMIT}:refs/heads/automation/sync-generated-main" --force
+
+          # Create PR if it doesn't exist yet
+          gh pr list --head automation/sync-generated-main --json number --jq '.[0].number' \
+            | grep -q . || \
+          gh pr create \
+            --base main \
+            --head automation/sync-generated-main \
+            --title "chore: sync generated grammar files" \
+            --body "Generated from the latest \`build\` branch commit.
+
+          This PR keeps \`main\` editor-ready by including generated tree-sitter files,
+          final queries, and the main-branch \`.gitignore\`, while leaving build-only
+          infrastructure on \`build\`."
