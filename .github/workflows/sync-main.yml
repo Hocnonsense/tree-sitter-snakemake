@@ -22,13 +22,15 @@ jobs:
         with:
           environments: build dev
 
-      - name: Generate editor-ready files
-        run: |
-          pixi run npm-install
-          pixi run build
-          cp .github/main.gitignore .gitignore
+      - name: Build and test
+        run: pixi run npm-install && pixi run build
 
-      - name: Open pull request to main
+      - name: Prepare main branch content
+        run: |
+          cp .github/main.gitignore .gitignore
+          rm -rf .nvim-local queries_template .github/workflows
+
+      - name: Open or update pull request to main
         uses: peter-evans/create-pull-request@v6
         with:
           branch: automation/sync-generated-main
