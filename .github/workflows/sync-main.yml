@@ -28,13 +28,16 @@ jobs:
       - name: Prepare main branch content
         run: |
           sed -i '/^# build-branch-only$/,$d' .gitignore
+          sed -i '/^<!-- build-branch-only -->$/,$d' README.md
           rm -rf \
             build_tools \
             .nvim-local \
             pixi.lock \
             release-please-config.json \
-            .release-please-manifest.json \
-            .github
+            .release-please-manifest.json
+          rm -f .github/workflows/ci.yml
+          rm -f .github/workflows/release-please-build.yml
+          rm -f .github/workflows/sync-main.yml
 
       - name: Push to PR branch and open or update PR
         env:
@@ -44,6 +47,8 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           BUILD_SHA=$(git rev-parse --short HEAD)
+          BUILD_FULL_SHA=$(git rev-parse HEAD)
+          BUILD_SUBJECT=$(git log -1 --pretty=%s)
           git add -A
           git fetch origin main
 
@@ -51,7 +56,9 @@ jobs:
           TREE=$(git write-tree)
           PARENT=$(git rev-parse origin/main)
           COMMIT=$(git commit-tree "$TREE" -p "$PARENT" \
-            -m "chore: sync generated grammar files from build@${BUILD_SHA}")
+            -m "chore: sync generated grammar files from build@${BUILD_SHA}" \
+            -m "Source-build-commit: ${BUILD_FULL_SHA}" \
+            -m "Source-build-subject: ${BUILD_SUBJECT}")
           git push origin "${COMMIT}:refs/heads/automation/sync-generated-main" --force
 
           # Create PR if it doesn't exist yet
@@ -62,6 +69,8 @@ jobs:
             --head automation/sync-generated-main \
             --title "chore: sync generated grammar files" \
             --body "Generated from the latest \`build\` branch commit.
+
+          Source build commit: \`${BUILD_FULL_SHA}\`
 
           This PR keeps \`main\` editor-ready by including generated tree-sitter files,
           final queries, and the main-branch \`.gitignore\`, while leaving build-only
